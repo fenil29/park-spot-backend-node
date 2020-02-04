@@ -55,16 +55,13 @@ const getSDBystatus = (request, response) => {
 const getSpot = (request, response) => {
   const id = request.params.id;
   pool.query(
-    "SELECT spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1",
+    "SELECT min(spot_no) as spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1",
     [id],
     (error, results) => {
-      if (results.rows.length == 0) {
+      if (!results.rows[0]["spot_no"]) {
         response.send("Parking is full. ");
       } else {
-        for (let index = 0; index < results.rows.length; index++) {
-          response.status(200).json(results.rows[index]);
-          break;
-        }
+        response.status(200).json(results.rows[0]);
       }
     }
   );
