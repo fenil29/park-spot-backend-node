@@ -50,19 +50,34 @@ const getSDBystatus = (request, response) => {
     }
   );
 };
-//"UPDATE fms_parking_spot SET sd_status= $1,lot_id=$3 WHERE spot_no = $2"
+//"UPDATE fms_parking_spot SET sd_status= 1,lot_id=$1 WHERE spot_no = min(spot_no)"
 
 const getSpot = (request, response) => {
   const id = request.params.id;
+  let spot_no;
   pool.query(
-    "SELECT min(spot_no) as spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1",
+    "SELECT min(spot_no) as spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1 ",
     [id],
     (error, results) => {
       if (!results.rows[0]["spot_no"]) {
         response.send("Parking is full. ");
       } else {
-        response.status(200).json(results.rows[0]);
+        spot_no = Number(results.rows[0]["spot_no"]);
+        // response.status(200).json(results.rows[0]);
       }
+    }
+  );
+
+  console.log(spot_no);
+  pool.query(
+    "UPDATE fms_parking_spot SET sd_status = 1 WHERE lot_id=$1  AND spot_no = $2",
+    [id, spot_no],
+    (error, results) => {
+      if (error) {
+        //throw error;
+        console.log(error);
+      }
+      //response.send("Status Updated");
     }
   );
 };
