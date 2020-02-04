@@ -54,32 +54,58 @@ const getSDBystatus = (request, response) => {
 
 const getSpot = (request, response) => {
   const id = request.params.id;
-  let spot_no;
-  pool.query(
-    "SELECT min(spot_no) as spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1 ",
-    [id],
-    (error, results) => {
-      if (!results.rows[0]["spot_no"]) {
-        response.send("Parking is full. ");
-      } else {
-        spot_no = Number(results.rows[0]["spot_no"]);
-        // response.status(200).json(results.rows[0]);
-      }
-    }
-  );
+  const user = request.params.user;
 
-  console.log(spot_no);
-  pool.query(
-    "UPDATE fms_parking_spot SET sd_status = 1 WHERE lot_id=$1  AND spot_no = $2",
-    [id, spot_no],
-    (error, results) => {
-      if (error) {
-        //throw error;
-        console.log(error);
-      }
-      //response.send("Status Updated");
+  (async () => {
+    const client = await pool.connect();
+    // note: we don't try/catch this because if connecting throws an exception
+    // we don't need to dispose of the client (it will be undefined)
+    try {
+      await client.query("BEGIN");
+      const queryText =
+        "SELECT min(spot_no) as spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1";
+      const res = await client.query(queryText, [id]);
+      const updateStatus =
+        "UPDATE fms_parking_spot SET sd_status = 1 WHERE lot_id=$1 AND spot_no =$2";
+      const Values = [id, Number(res.rows[0]["spot_no"])];
+      await client.query(updateStatus, Values);
+      //const values2 = [user,id, Number(res.rows[0]["spot_no"])];
+      //const updateInTime = "insert into fms_parking_history values ()";
+      await client.query("COMMIT");
+      response.status(200).json(res.rows[0]);
+    } catch (e) {
+      await client.query("ROLLBACK");
+      throw e;
+    } finally {
+      client.release();
     }
-  );
+  })().catch(e => console.error(e.stack));
+
+  //let spot_no;
+  // pool.query(
+  //   "SELECT min(spot_no) as spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1 ",
+  //   [id],
+  //   (error, results) => {
+  //     if (!results.rows[0]["spot_no"]) {
+  //       response.send("Parking is full. ");
+  //     } else {
+  //       spot_no = Number(results.rows[0]["spot_no"]);
+  //       //response.status(200).json(results.rows[0]);
+  //       pool.query(
+  //         "UPDATE fms_parking_spot SET sd_status = 1 WHERE lot_id=$1 AND spot_no =$2 ",
+  //         [id, spot_no],
+  //         (error, results) => {
+  //           if (error) {
+  //             //throw error;
+  //             console.log(spot_no);
+  //             console.log(error);
+  //           }
+  //           //response.send("Status Updated");
+  //         }
+  //       );
+  //     }
+  //   }
+  // );
 };
 
 const createSD = (request, response) => {
