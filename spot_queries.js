@@ -1,13 +1,5 @@
-const { Pool, Client } = require("pg");
+const pool = require("./postgresql_connection.js").pool;
 const validate = require("./validate.js");
-const connectionString = "postgresql://fms_admin:fmsadmin@localhost:5432/fms";
-const pool = new Pool({
-  connectionString: connectionString
-});
-
-const client = new Client({
-  connectionString: connectionString
-});
 
 const getSD = (request, response) => {
   pool.query(
