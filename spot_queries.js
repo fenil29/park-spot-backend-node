@@ -46,7 +46,7 @@ const getSDBystatus = (request, response) => {
 
 const getSpot = (request, response) => {
   const id = request.params.id;
-  const user = request.params.user;
+  const user = request.body.user;
 
   (async () => {
     const client = await pool.connect();
@@ -61,8 +61,9 @@ const getSpot = (request, response) => {
         "UPDATE fms_parking_spot SET sd_status = 1 WHERE lot_id=$1 AND spot_no =$2";
       const Values = [id, Number(res.rows[0]["spot_no"])];
       await client.query(updateStatus, Values);
-      //const values2 = [user,id, Number(res.rows[0]["spot_no"])];
-      //const updateInTime = "insert into fms_parking_history values ()";
+      const values2 = [user,id, Number(res.rows[0]["spot_no"])];
+      const updateInTime = "insert into fms_parking_history values ($1,$2,$3,CURRENT_TIMESTAMP,NULL)";
+      await client.query(updateInTime, values2);
       await client.query("COMMIT");
       response.status(200).json(res.rows[0]);
     } catch (e) {

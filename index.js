@@ -52,7 +52,7 @@ app.delete("/pd/:id", pdq.deletePD);
 app.get("/sd", sdq.getSD);
 app.get("/sd/id/:id", sdq.getSDById);
 app.get("/sd/id/:id/status/:status", sdq.getSDBystatus);
-app.get("/sd/:id", sdq.getSpot);
+app.post("/sd/:id", sdq.getSpot);
 app.post("/sd", sdq.createSD);
 app.put("/sd/:id", sdq.updateSD);
 app.delete("/sd/:id", sdq.deleteSD);
