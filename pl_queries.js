@@ -43,12 +43,11 @@ const getPDByname = (request, response) => {
   );
 };
 
-const getPDBycity = (request, response) => {
-  const city = request.params.city;
-
+const getPDByOwner = (request, response) => {
+  const id = request.params.id;
   pool.query(
-    "SELECT * FROM fms_parking_lot WHERE pd_loc_city = $1",
-    [city],
+    "SELECT * FROM fms_parking_lot where pd_owner_id =$1",
+    [id],
     (error, results) => {
       if (error) {
         throw error;
@@ -57,37 +56,6 @@ const getPDBycity = (request, response) => {
     }
   );
 };
-
-const getPDByState = (request, response) => {
-  const state = parseInt(request.params.state);
-
-  pool.query(
-    "SELECT * FROM fms_parking_lot WHERE pd_loc_state = $1",
-    [state],
-    (error, results) => {
-      if (error) {
-        throw error;
-      }
-      response.status(200).json(results.rows);
-    }
-  );
-};
-
-const getPDBypin = (request, response) => {
-  const pin = parseInt(request.params.pin);
-
-  pool.query(
-    "SELECT * FROM fms_parking_lot WHERE pd_loc_pincode = $1",
-    [pin],
-    (error, results) => {
-      if (error) {
-        throw error;
-      }
-      response.status(200).json(results.rows);
-    }
-  );
-};
-
 // const createUser = (request, response) => {
 //   const { id,email,fname,lname, mobile } = request.body
 
@@ -101,13 +69,25 @@ const getPDBypin = (request, response) => {
 
 const createPD = (request, response) => {
   console.log(request.body);
-  const { id, name, cood, city, state, add, pin, entry, exit } = request.body;
+  const {
+    id,
+    name,
+    add,
+    pin,
+    entry,
+    exit,
+    lon,
+    lat,
+    price,
+    oid
+  } = request.body;
   validate.create_pd_schema.validate({
     jid: id,
+    jid: oid,
     jname: name,
-    jname: city,
-    jname: state,
-    jcood: cood,
+    jprice: price,
+    jcood: lon,
+    jcood: lat,
     jadd: add,
     jpin: pin,
     jentry: entry,
@@ -116,10 +96,11 @@ const createPD = (request, response) => {
 
   const temp = validate.create_pd_schema.validate({
     jid: id,
+    jid: oid,
     jname: name,
-    jname: city,
-    jname: state,
-    jcood: cood,
+    jprice: price,
+    jcood: lon,
+    jcood: lat,
     jadd: add,
     jpin: pin,
     jentry: entry,
@@ -132,8 +113,8 @@ const createPD = (request, response) => {
       .send("Parking was not added. Invalid entry. Please try again.");
   } else {
     const text =
-      "INSERT INTO fms_parking_lot (pd_lot_id,pd_loc_cood,pd_loc_name,pd_loc_city,pd_loc_state,pd_loc_address,pd_loc_pincode,pd_entry,pd_exit) VALUES($1, $2,$3,$4,$5,$6,$7,$8,$9)";
-    const values = [id, name, cood, city, state, add, pin, entry, exit];
+      "INSERT INTO fms_parking_lot (pd_lot_id,pd_loc_name,pd_loc_address,pd_loc_pincode,pd_entry,pd_exit,longitude,latitude,pd_hrly_rate,pd_owner_id) VALUES($1, $2,$3,$4,$5,$6,$7,$8,$9,$10)";
+    const values = [id, name, add, pin, entry, exit, lon, lat, price, oid];
     // callback
     pool.query(text, values, (err, res) => {
       if (err) {
@@ -149,13 +130,14 @@ const createPD = (request, response) => {
 
 const updatePD = (request, response) => {
   const id = parseInt(request.params.id);
-  const { name, cood, city, state, add, pin, entry, exit } = request.body;
+  const { name, add, pin, entry, exit, lon, lat, price, oid } = request.body;
   const temp = validate.create_pd_schema.validate({
     jid: id,
+    jid: oid,
     jname: name,
-    jname: city,
-    jname: state,
-    jcood: cood,
+    jcood: lon,
+    jcood: lat,
+    jprice: price,
     jadd: add,
     jpin: pin,
     jentry: entry,
@@ -168,8 +150,8 @@ const updatePD = (request, response) => {
       .send("Parking was not updated. Invalid entry. Please try again.");
   } else {
     pool.query(
-      "UPDATE fms_parking_lot SET pd_loc_cood= $1, pd_loc_name = $2, pd_loc_city = $3,pd_loc_state =$4,pd_loc_address =$5,pd_loc_pincode =$6 ,pd_entry=$8,pd_exit=$9 WHERE pd_lot_id= $7",
-      [name, cood, city, state, add, pin, id, entry, exit],
+      "UPDATE fms_parking_lot SET latitude= $1, pd_loc_name = $2, longitude = $3,pd_loc_address =$4,pd_loc_pincode =$5 ,pd_entry=$6,pd_exit=$8 ,pd_hrly_rate=$9, pd_owner_id=$10s WHERE pd_lot_id= $7",
+      [lat, name, lon, add, pin, id, entry, exit, price, oid],
       (error, result) => {
         if (error) {
           throw error;
@@ -199,9 +181,7 @@ module.exports = {
   getPD,
   getPDById,
   getPDByname,
-  getPDBycity,
-  getPDByState,
-  getPDBypin,
+  getPDByOwner,
   createPD,
   updatePD,
   deletePD
