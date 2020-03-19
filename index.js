@@ -4,8 +4,8 @@ const app = express();
 //const Joi = require('@hapi/joi');
 const uq = require("./user_queries.js");
 const phq = require("./ph_queries.js");
-const pdq = require("./pl_queries");
-const sdq = require("./spot_queries");
+const parkingq = require("./pl_queries");
+const spotq = require("./spot_queries");
 const port = 3000;
 
 app.use(bodyParser.json());
@@ -37,23 +37,24 @@ app.put("/history/:id", phq.updateHistory);
 app.delete("/history/:id", phq.deleteHistory);
 
 //fms_parking_lot
-app.get("/pd", pdq.getPD);
-app.get("/pd/id/:id", pdq.getPDById);
-app.get("/pd/name/:name", pdq.getPDByname);
-app.get("/pd/:id", pdq.getPDByOwner);
-app.post("/pd", pdq.createPD);
-app.put("/pd/:id", pdq.updatePD);
-app.delete("/pd/:id", pdq.deletePD);
+app.get("/parking", parkingq.getPD);
+app.get("/parking/id/:id", parkingq.getPDById);
+app.get("/parking/name/:name", parkingq.getPDByname);
+app.get("/parking/:id", parkingq.getPDByOwner);
+app.post("/parking", parkingq.createPD);
+app.put("/parking/:id", parkingq.updatePD);
+app.delete("/parking/:id", parkingq.deletePD);
 
 //fms_parking_spot
 
-app.get("/sd", sdq.getSD);
-app.get("/sd/id/:id", sdq.getSDById);
-app.get("/sd/id/:id/status/:status", sdq.getSDBystatus);
-app.post("/sd/:id", sdq.getSpot);
-app.post("/sd", sdq.createSD);
-app.put("/sd/:id", sdq.updateSD);
-app.delete("/sd/:id", sdq.deleteSD);
+app.get("/spot", spotq.getSD);
+app.get("/spot/id/:id", spotq.getSDById);
+app.get("/spot/id/:id/status/:status", spotq.getSDBystatus);
+app.post("/spot/get/:id", spotq.getSpot);
+app.post("/spot/left/:id", spotq.leaveSpot);
+app.post("/spot", spotq.createSD);
+app.put("/spot/:id", spotq.updateSD);
+app.delete("/spot/:id", spotq.deleteSD);
 
 app.listen(port, () => {
   console.log(`App running on port ${port}.`);

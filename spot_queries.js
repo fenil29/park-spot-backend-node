@@ -61,8 +61,9 @@ const getSpot = (request, response) => {
         "UPDATE fms_parking_spot SET sd_status = 1 WHERE lot_id=$1 AND spot_no =$2";
       const Values = [id, Number(res.rows[0]["spot_no"])];
       await client.query(updateStatus, Values);
-      const values2 = [user,id, Number(res.rows[0]["spot_no"])];
-      const updateInTime = "insert into fms_parking_history values ($1,$2,$3,CURRENT_TIMESTAMP,NULL)";
+      const values2 = [user, id, Number(res.rows[0]["spot_no"])];
+      const updateInTime =
+        "insert into fms_parking_history values ($1,$2,$3,CURRENT_TIMESTAMP,NULL)";
       await client.query(updateInTime, values2);
       await client.query("COMMIT");
       response.status(200).json(res.rows[0]);
@@ -73,32 +74,72 @@ const getSpot = (request, response) => {
       client.release();
     }
   })().catch(e => console.error(e.stack));
+};
 
-  //let spot_no;
-  // pool.query(
-  //   "SELECT min(spot_no) as spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1 ",
-  //   [id],
-  //   (error, results) => {
-  //     if (!results.rows[0]["spot_no"]) {
-  //       response.send("Parking is full. ");
-  //     } else {
-  //       spot_no = Number(results.rows[0]["spot_no"]);
-  //       //response.status(200).json(results.rows[0]);
-  //       pool.query(
-  //         "UPDATE fms_parking_spot SET sd_status = 1 WHERE lot_id=$1 AND spot_no =$2 ",
-  //         [id, spot_no],
-  //         (error, results) => {
-  //           if (error) {
-  //             //throw error;
-  //             console.log(spot_no);
-  //             console.log(error);
-  //           }
-  //           //response.send("Status Updated");
-  //         }
-  //       );
-  //     }
-  //   }
-  // );
+//let spot_no;
+// pool.query(
+//   "SELECT min(spot_no) as spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1 ",
+//   [id],
+//   (error, results) => {
+//     if (!results.rows[0]["spot_no"]) {
+//       response.send("Parking is full. ");
+//     } else {
+//       spot_no = Number(results.rows[0]["spot_no"]);
+//       //response.status(200).json(results.rows[0]);
+//       pool.query(
+//         "UPDATE fms_parking_spot SET sd_status = 1 WHERE lot_id=$1 AND spot_no =$2 ",
+//         [id, spot_no],
+//         (error, results) => {
+//           if (error) {
+//             //throw error;
+//             console.log(spot_no);
+//             console.log(error);
+//           }
+//           //response.send("Status Updated");
+//         }
+//       );
+//     }
+//   }
+// );
+const leaveSpot = (request, response) => {
+  const id = request.params.id;
+  const user = request.body.user;
+
+  (async () => {
+    const client = await pool.connect();
+    // note: we don't try/catch this because if connecting throws an exception
+    // we don't need to dispose of the client (it will be undefined)
+    try {
+      await client.query("BEGIN");
+      const queryText =
+        "SELECT parking_spot as spot_no from fms_parking_history WHERE user_id=$2 AND parking_lot=$1";
+      const res = await client.query(queryText, [id, user]);
+      const updateStatus =
+        "UPDATE fms_parking_spot SET sd_status = 0 WHERE lot_id=$1 AND spot_no =$2";
+      const Values = [id, Number(res.rows[0]["spot_no"])];
+      await client.query(updateStatus, Values);
+      const values2 = [user, id];
+      const updateOutTime =
+        "update fms_parking_history set out_time = CURRENT_TIMESTAMP WHERE user_id=$1 AND parking_lot=$2";
+      await client.query(updateOutTime, values2);
+      const totalTime =
+        "select out_time - in_time as Total_time from fms_parking_history WHERE user_id=$1 AND parking_lot=$2";
+      const values3 = [user, id];
+      const res1 = await client.query(totalTime, values3);
+
+      await client.query("COMMIT");
+      var hours = response.status(200).json(res1.rows[0].total_time.hours);
+      var mins = response.status(200).json(res1.rows[0].total_time.minutes);
+      //console.log(hours);
+      //console.log("minutes:" + mins);
+      //response.status(200).json(res.rows[0]);
+    } catch (e) {
+      await client.query("ROLLBACK");
+      throw e;
+    } finally {
+      client.release();
+    }
+  })().catch(e => console.error(e.stack));
 };
 
 const createSD = (request, response) => {
@@ -182,6 +223,7 @@ module.exports = {
   getSDById,
   getSDBystatus,
   getSpot,
+  leaveSpot,
   createSD,
   updateSD,
   deleteSD
