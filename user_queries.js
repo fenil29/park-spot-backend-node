@@ -64,18 +64,22 @@ const login = (request, response) => {
   validate.login_schema.validate({});
   const temp = validate.login_schema.validate({ jid: id, jpass: pass });
   if (temp.error) {
-    response.status(201).send(" Please enter correct id or password.");
+    response.status(400).send("Please enter correct id or password.");
   } else {
     pool.query(
-      "SELECT access_right FROM fms_user WHERE user_user_id = $1 AND user_password=$2",
+      "SELECT * FROM fms_user WHERE user_user_id = $1 AND user_password=$2",
       [id, pass],
       (error, results) => {
         if (results.rows == 0) {
           response
-            .status(201)
-            .send("User was not found. Please signup or try again.");
+            .status(400)
+            .send("Please enter correct id or password");
+        } else {
+          user=results.rows[0]
+          delete user["user_mobile_no"];
+          delete user["user_password"];
+          response.status(200).json(user);
         }
-        response.status(200).json(results.rows);
         // console.log(results.rows.length)
         //   if (results.rows.length==1) {
         //   response.status(200).json(results.row)
