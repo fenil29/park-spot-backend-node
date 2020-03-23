@@ -70,7 +70,7 @@ const login = (request, response) => {
       "SELECT access_right FROM fms_user WHERE user_user_id = $1 AND user_password=$2",
       [id, pass],
       (error, results) => {
-        if (error) {
+        if (results.rows == 0) {
           response
             .status(201)
             .send("User was not found. Please signup or try again.");
