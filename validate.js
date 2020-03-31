@@ -51,6 +51,28 @@ const create_pd_schema = Joi.object({
   jprice: Joi.number().required()
 });
 
+const update_pd_schema = Joi.object({
+  jid: Joi.number().min(1),
+
+  jname: Joi.string()
+    .regex(/^[a-zA-Z]+$/)
+    .min(3)
+    .max(30),
+  jadd: Joi.string().regex(/^[A-Za-z0-9'\.\-\s\,]+$/),
+
+  jpin: Joi.string().regex(/^(\d{4}|^\d{6})$/),
+
+  jcood: Joi.string().regex(
+    /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/
+  ),
+
+  jentry: Joi.number()
+    .min(0)
+    .max(1),
+
+  jprice: Joi.number()
+});
+
 const create_ph_schema = Joi.object({
   jid: Joi.number()
     .min(1)
@@ -85,6 +107,8 @@ const login_schema = Joi.object({
 module.exports = {
   create_user_schema,
   create_pd_schema,
+  update_pd_schema,
+  create_ph_schema,
   create_spot_schema,
   login_schema
 };

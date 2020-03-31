@@ -77,7 +77,8 @@ const createPD = (request, response) => {
     latitude,
     price,
     owner_id,
-    total
+    total,
+    occupied
   } = request.body;
   validate.create_pd_schema.validate({
     jid: owner_id,
@@ -87,7 +88,8 @@ const createPD = (request, response) => {
     jcood: latitude,
     jaddress: address,
     jpin: pin,
-    jprice: total
+    jprice: total,
+    jprice: occupied
   });
 
   const temp = validate.create_pd_schema.validate({
@@ -98,7 +100,7 @@ const createPD = (request, response) => {
     jcood: latitude,
     jaddress: address,
     jpin: pin,
-
+    jprice: occupied,
     jprice: total
   });
   //console.log(temp.error)
@@ -108,7 +110,7 @@ const createPD = (request, response) => {
       .send("Parking was not addressed. Invalid entry. Please try again.");
   } else {
     const text =
-      "INSERT INTO fms_parking_lot (pd_loc_name,pd_loc_address,pd_loc_pincode,longitude,latitude,pd_hrly_rate,pd_owner_id,total_spots) VALUES($1, $2,$3,$4,$5,$6,$7,$8)";
+      "INSERT INTO fms_parking_lot (pd_loc_name,pd_loc_address,pd_loc_pincode,longitude,latitude,pd_hrly_rate,pd_owner_id,total_spot) VALUES($1, $2,$3,$4,$5,$6,$7,$8)";
     const values = [
       name,
       address,
@@ -134,25 +136,23 @@ const createPD = (request, response) => {
 
 const updatePD = (request, response) => {
   const id = parseInt(request.params.id);
-  const {
-    name,
-    address,
-    pin,
-    longitude,
-    latitude,
-    price,
-    owner_id,
-    total
-  } = request.body;
-  const temp = validate.create_pd_schema.validate({
+  const { name, entry, exit, price, owner_id, total } = request.body;
+  validate.update_pd_schema.validate({
     jid: id,
     jid: owner_id,
     jname: name,
-    jcood: longitude,
-    jcood: latitude,
     jprice: price,
-    jaddress: address,
-    jpin: pin,
+    jentry: entry,
+    jentry: exit,
+    jprice: total
+  });
+  const temp = validate.update_pd_schema.validate({
+    jid: id,
+    jid: owner_id,
+    jname: name,
+    jprice: price,
+    jentry: entry,
+    jentry: exit,
     jprice: total
   });
   //console.log(temp.error)
@@ -161,16 +161,29 @@ const updatePD = (request, response) => {
       .status(201)
       .send("Parking was not updated. Invalid entry. Please try again.");
   } else {
-    pool.query(
-      "UPDATE fms_parking_lot SET latitudeitude= $1, pd_loc_name = $2, longitudegitude = $3,pd_loc_addressress =$4,pd_loc_pincode =$5 ,pd_entry=$6,pd_exit=$8 ,pd_hrly_rate=$9, pd_owner_id=$10,,total_spots=$11,occupied_spots=$12 WHERE pd_lot_id= $7",
-      [latitude, name, longitude, address, pin, id, price, owner_id, total],
-      (error, result) => {
-        if (error) {
-          throw error;
-        }
-        response.status(200).send(`Parking modified with ID: ${id}`);
+    (async () => {
+      const client = await pool.connect();
+      // note: we don't try/catch this because if connecting throws an exception
+      // we don't need to dispose of the client (it will be undefined)
+      try {
+        await client.query("BEGIN");
+        const queryText =
+          "SELECT spot_no from fms_parking_spot WHERE sd_status=1 AND lot_id=$1";
+        let res = await client.query(queryText, [id]);
+        console.log(res);
+        const updateStatus =
+          "UPDATE fms_parking_lot SET pd_loc_name = $1 ,pd_entry=$2,pd_exit=$4 ,pd_hrly_rate=$5, pd_owner_id=$6,total_spot=$7,occupied_spot=$8 WHERE pd_lot_id= $3";
+        res = Number(res);
+        console.log(res);
+        const Values = [name, entry, id, exit, price, owner_id, total, res];
+        await client.query(updateStatus, Values);
+      } catch (e) {
+        await client.query("ROLLBACK");
+        throw e;
+      } finally {
+        client.release();
       }
-    );
+    })().catch(e => console.error(e.stack));
   }
 };
 
