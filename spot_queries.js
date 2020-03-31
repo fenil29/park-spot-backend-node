@@ -57,6 +57,12 @@ const getSpot = (request, response) => {
       const queryText =
         "SELECT min(spot_no) as spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1";
       const res = await client.query(queryText, [id]);
+
+      const occupied =
+        "UPDATE fms_parking_lot SET occupied_spot = occupied_spot + 1 WHERE pd_lot_id=$1";
+      const Value = [id];
+      await client.query(occupied, Value);
+
       const updateStatus =
         "UPDATE fms_parking_spot SET sd_status = 1 WHERE lot_id=$1 AND spot_no =$2";
       const Values = [id, Number(res.rows[0]["spot_no"])];
@@ -114,10 +120,17 @@ const leaveSpot = (request, response) => {
       const queryText =
         "SELECT parking_spot as spot_no from fms_parking_history WHERE user_id=$2 AND parking_lot=$1";
       const res = await client.query(queryText, [id, user]);
+
       const updateStatus =
         "UPDATE fms_parking_spot SET sd_status = 0 WHERE lot_id=$1 AND spot_no =$2";
       const Values = [id, Number(res.rows[0]["spot_no"])];
       await client.query(updateStatus, Values);
+
+      const occupied =
+        "UPDATE fms_parking_lot SET occupied_spot = occupied_spot - 1 WHERE pd_lot_id=$1";
+      const Value = [id];
+      await client.query(occupied, Value);
+
       const values2 = [user, id];
       const updateOutTime =
         "update fms_parking_history set out_time = CURRENT_TIMESTAMP WHERE user_id=$1 AND parking_lot=$2";
