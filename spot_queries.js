@@ -47,39 +47,48 @@ const getSDBystatus = (request, response) => {
 const getSpot = (request, response) => {
   const id = request.params.id;
   const user = request.body.user;
+  validate.create_spot_schema.validate({ jno: id, jno: user });
 
-  (async () => {
-    const client = await pool.connect();
-    // note: we don't try/catch this because if connecting throws an exception
-    // we don't need to dispose of the client (it will be undefined)
-    try {
-      await client.query("BEGIN");
-      const queryText =
-        "SELECT min(spot_no) as spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1";
-      const res = await client.query(queryText, [id]);
+  const temp = validate.create_spot_schema.validate({ jno: id, jno: user });
+  //console.log(temp.error)
+  if (temp.error) {
+    response
+      .status(400)
+      .send("User Id or Parking Id is invalid. Please try again.");
+  } else {
+    (async () => {
+      const client = await pool.connect();
+      // note: we don't try/catch this because if connecting throws an exception
+      // we don't need to dispose of the client (it will be undefined)
+      try {
+        await client.query("BEGIN");
+        const queryText =
+          "SELECT min(spot_no) as spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1";
+        const res = await client.query(queryText, [id]);
 
-      const occupied =
-        "UPDATE fms_parking_lot SET occupied_spot = occupied_spot + 1 WHERE pd_lot_id=$1";
-      const Value = [id];
-      await client.query(occupied, Value);
+        const occupied =
+          "UPDATE fms_parking_lot SET occupied_spot = occupied_spot + 1 WHERE pd_lot_id=$1";
+        const Value = [id];
+        await client.query(occupied, Value);
 
-      const updateStatus =
-        "UPDATE fms_parking_spot SET sd_status = 1 WHERE lot_id=$1 AND spot_no =$2";
-      const Values = [id, Number(res.rows[0]["spot_no"])];
-      await client.query(updateStatus, Values);
-      const values2 = [user, id, Number(res.rows[0]["spot_no"])];
-      const updateInTime =
-        "insert into fms_parking_history values ($1,$2,$3,CURRENT_TIMESTAMP,NULL)";
-      await client.query(updateInTime, values2);
-      await client.query("COMMIT");
-      response.status(200).json(res.rows[0]);
-    } catch (e) {
-      await client.query("ROLLBACK");
-      throw e;
-    } finally {
-      client.release();
-    }
-  })().catch(e => console.error(e.stack));
+        const updateStatus =
+          "UPDATE fms_parking_spot SET sd_status = 1 WHERE lot_id=$1 AND spot_no =$2";
+        const Values = [id, Number(res.rows[0]["spot_no"])];
+        await client.query(updateStatus, Values);
+        const values2 = [user, id, Number(res.rows[0]["spot_no"])];
+        const updateInTime =
+          "insert into fms_parking_history values ($1,$2,$3,CURRENT_TIMESTAMP,NULL)";
+        await client.query(updateInTime, values2);
+        await client.query("COMMIT");
+        response.status(200).json(res.rows[0]);
+      } catch (e) {
+        await client.query("ROLLBACK");
+        throw e;
+      } finally {
+        client.release();
+      }
+    })().catch(e => console.error(e.stack));
+  }
 };
 
 //let spot_no;
@@ -110,49 +119,58 @@ const getSpot = (request, response) => {
 const leaveSpot = (request, response) => {
   const id = request.params.id;
   const user = request.body.user;
+  validate.create_spot_schema.validate({ jno: id, jno: user });
 
-  (async () => {
-    const client = await pool.connect();
-    // note: we don't try/catch this because if connecting throws an exception
-    // we don't need to dispose of the client (it will be undefined)
-    try {
-      await client.query("BEGIN");
-      const queryText =
-        "SELECT parking_spot as spot_no from fms_parking_history WHERE user_id=$2 AND parking_lot=$1";
-      const res = await client.query(queryText, [id, user]);
+  const temp = validate.create_spot_schema.validate({ jno: id, jno: user });
+  //console.log(temp.error)
+  if (temp.error) {
+    response
+      .status(400)
+      .send("User Id or Parking Id is invalid. Please try again.");
+  } else {
+    (async () => {
+      const client = await pool.connect();
+      // note: we don't try/catch this because if connecting throws an exception
+      // we don't need to dispose of the client (it will be undefined)
+      try {
+        await client.query("BEGIN");
+        const queryText =
+          "SELECT parking_spot as spot_no from fms_parking_history WHERE user_id=$2 AND parking_lot=$1 AND out_time IS NULL";
+        const res = await client.query(queryText, [id, user]);
 
-      const updateStatus =
-        "UPDATE fms_parking_spot SET sd_status = 0 WHERE lot_id=$1 AND spot_no =$2";
-      const Values = [id, Number(res.rows[0]["spot_no"])];
-      await client.query(updateStatus, Values);
+        const updateStatus =
+          "UPDATE fms_parking_spot SET sd_status = 0 WHERE lot_id=$1 AND spot_no =$2";
+        const Values = [id, Number(res.rows[0]["spot_no"])];
+        await client.query(updateStatus, Values);
 
-      const occupied =
-        "UPDATE fms_parking_lot SET occupied_spot = occupied_spot - 1 WHERE pd_lot_id=$1";
-      const Value = [id];
-      await client.query(occupied, Value);
+        const occupied =
+          "UPDATE fms_parking_lot SET occupied_spot = occupied_spot - 1 WHERE pd_lot_id=$1";
+        const Value = [id];
+        await client.query(occupied, Value);
 
-      const values2 = [user, id];
-      const updateOutTime =
-        "update fms_parking_history set out_time = CURRENT_TIMESTAMP WHERE user_id=$1 AND parking_lot=$2";
-      await client.query(updateOutTime, values2);
-      const totalTime =
-        "select out_time - in_time as Total_time from fms_parking_history WHERE user_id=$1 AND parking_lot=$2";
-      const values3 = [user, id];
-      const res1 = await client.query(totalTime, values3);
+        const values2 = [user, id];
+        const updateOutTime =
+          "update fms_parking_history set out_time = CURRENT_TIMESTAMP WHERE user_id=$1 AND parking_lot=$2";
+        await client.query(updateOutTime, values2);
+        const totalTime =
+          "select out_time - in_time as Total_time from fms_parking_history WHERE user_id=$1 AND parking_lot=$2";
+        const values3 = [user, id];
+        const res1 = await client.query(totalTime, values3);
 
-      await client.query("COMMIT");
-      var hours = response.status(200).json(res1.rows[0].total_time.hours);
-      var mins = response.status(200).json(res1.rows[0].total_time.minutes);
-      //console.log(hours);
-      //console.log("minutes:" + mins);
-      //response.status(200).json(res.rows[0]);
-    } catch (e) {
-      await client.query("ROLLBACK");
-      throw e;
-    } finally {
-      client.release();
-    }
-  })().catch(e => console.error(e.stack));
+        await client.query("COMMIT");
+        var hours = response.status(200).json(res1.rows[0].total_time.hours);
+        var mins = response.status(200).json(res1.rows[0].total_time.minutes);
+        //console.log(hours);
+        //console.log("minutes:" + mins);
+        //response.status(200).json(res.rows[0]);
+      } catch (e) {
+        await client.query("ROLLBACK");
+        throw e;
+      } finally {
+        client.release();
+      }
+    })().catch(e => console.error(e.stack));
+  }
 };
 
 const createSD = (request, response) => {
