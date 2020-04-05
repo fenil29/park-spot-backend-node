@@ -62,32 +62,48 @@ const getSpot = (request, response) => {
       // we don't need to dispose of the client (it will be undefined)
       try {
         await client.query("BEGIN");
-        const queryText =
-          "SELECT min(spot_no) as spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1";
-        const res = await client.query(queryText, [id]);
-
-        const occupied =
-          "UPDATE fms_parking_lot SET occupied_spot = occupied_spot + 1 WHERE pd_lot_id=$1";
+        const full =
+          "select occupied_spot from fms_parking_lot where pd_lot_id=$1";
         const Value = [id];
-        await client.query(occupied, Value);
+        const oc = await client.query(full, Value);
+        console.log("oc:" + oc);
+        const full1 =
+          "select total_spot from fms_parking_lot where pd_lot_id=$1";
+        const tot = await client.query(full1, Value);
+        console.log("tota:" + tot);
+        if (oc == tot) {
+          response.status(400).send("Sorry Parking is full...");
+        } else {
+          const queryText =
+            "SELECT min(spot_no) as spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1 ";
+          const res = await client.query(queryText, [id]);
 
-        const updateStatus =
-          "UPDATE fms_parking_spot SET sd_status = 1 WHERE lot_id=$1 AND spot_no =$2";
-        const Values = [id, Number(res.rows[0]["spot_no"])];
-        await client.query(updateStatus, Values);
-        const values2 = [user, id, Number(res.rows[0]["spot_no"])];
-        const updateInTime =
-          "insert into fms_parking_history values ($1,$2,$3,CURRENT_TIMESTAMP,NULL)";
-        await client.query(updateInTime, values2);
-        await client.query("COMMIT");
-        response.status(200).json(res.rows[0]);
+          // const lot = "SELECT * from fms_parking_lot WHERE pd_lot_id=$1";
+          // const res2 = await client.query(lot, [id]);
+
+          const occupied =
+            "UPDATE fms_parking_lot SET occupied_spot = occupied_spot + 1 WHERE pd_lot_id=$1";
+          const Value = [id];
+          await client.query(occupied, Value);
+
+          const updateStatus =
+            "UPDATE fms_parking_spot SET sd_status = 1 WHERE lot_id=$1 AND spot_no =$2";
+          const Values = [id, Number(res.rows[0]["spot_no"])];
+          await client.query(updateStatus, Values);
+          const values2 = [user, id, Number(res.rows[0]["spot_no"])];
+          const updateInTime =
+            "insert into fms_parking_history values ($1,$2,$3,CURRENT_TIMESTAMP,NULL)";
+          await client.query(updateInTime, values2);
+          await client.query("COMMIT");
+          response.status(200).json(res.rows[0]);
+        }
       } catch (e) {
         await client.query("ROLLBACK");
         throw e;
       } finally {
         client.release();
       }
-    })().catch(e => console.error(e.stack));
+    })().catch((e) => console.error(e.stack));
   }
 };
 
@@ -169,7 +185,7 @@ const leaveSpot = (request, response) => {
       } finally {
         client.release();
       }
-    })().catch(e => console.error(e.stack));
+    })().catch((e) => console.error(e.stack));
   }
 };
 
@@ -213,7 +229,7 @@ const updateSD = (request, response) => {
   const temp = validate.create_spot_schema.validate({
     jid: id,
     jstatus: status,
-    jid: spot
+    jid: spot,
   });
   //console.log(temp.error)
   if (temp.error) {
@@ -257,5 +273,5 @@ module.exports = {
   leaveSpot,
   createSD,
   updateSD,
-  deleteSD
+  deleteSD,
 };
