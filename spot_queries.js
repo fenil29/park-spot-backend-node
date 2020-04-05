@@ -63,16 +63,14 @@ const getSpot = (request, response) => {
       try {
         await client.query("BEGIN");
         const full =
-          "select occupied_spot from fms_parking_lot where pd_lot_id=$1";
+          "select occupied_spot,total_spot from fms_parking_lot where pd_lot_id=$1";
         const Value = [id];
         const oc = await client.query(full, Value);
-        console.log("oc:" + oc);
-        const full1 =
-          "select total_spot from fms_parking_lot where pd_lot_id=$1";
-        const tot = await client.query(full1, Value);
-        console.log("tota:" + tot);
-        if (oc == tot) {
-          response.status(400).send("Sorry Parking is full...");
+        // console.log("oc:" + JSON.stringify(oc));      
+        // console.log("oc:" + (oc.rows[0].occupied_spot));      
+        // if (oc.rows[0].occupied_spot == oc.rows[0].total_spot) {
+        if (true) {
+          response.status(400).json({"error_message":"Sorry Parking is full..."});
         } else {
           const queryText =
             "SELECT min(spot_no) as spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1 ";
