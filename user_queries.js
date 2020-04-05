@@ -70,16 +70,19 @@ const login = (request, response) => {
       "SELECT * FROM fms_user WHERE user_user_id = $1 AND user_password=$2",
       [id, pass],
       (error, results) => {
-        if (results.rows == 0) {
-          response
-            .status(400)
-            .send("Please enter correct id or password");
+        if (error) {
+          console.log(error);
         } else {
-          user=results.rows[0]
-          delete user["user_mobile_no"];
-          delete user["user_password"];
-          response.status(200).json(user);
+          if (results && results.rows == 0) {
+            response.status(400).send("Please enter correct id or password");
+          } else {
+            user = results.rows[0];
+            delete user["user_mobile_no"];
+            delete user["user_password"];
+            response.status(200).json(user);
+          }
         }
+
         // console.log(results.rows.length)
         //   if (results.rows.length==1) {
         //   response.status(200).json(results.row)
