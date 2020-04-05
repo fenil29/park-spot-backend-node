@@ -64,16 +64,19 @@ const getSpot = (request, response) => {
         await client.query("BEGIN");
         const lot = "SELECT * from fms_parking_lot WHERE pd_lot_id=$1";
         const ParkingLotRes = await client.query(lot, [id]);
-        const ParkingLotDetails = ParkingLotRes.rows[0]
+        const ParkingLotDetails = ParkingLotRes.rows[0];
         // console.log(ParkingLotDetails)
         const full =
           "select occupied_spot,total_spot from fms_parking_lot where pd_lot_id=$1";
         const Value = [id];
         const oc = await client.query(full, Value);
-        // console.log("oc:" + JSON.stringify(oc));      
-        // console.log("oc:" + (oc.rows[0].occupied_spot));      
+        // console.log("oc:" + JSON.stringify(oc));
+        // console.log("oc:" + (oc.rows[0].occupied_spot));
         if (oc.rows[0].occupied_spot == oc.rows[0].total_spot) {
-          response.status(400).json({ ...ParkingLotDetails, ...{ "error_message": "Sorry Parking is full..." } });
+          response.status(400).json({
+            ...ParkingLotDetails,
+            ...{ error_message: "Sorry Parking is full..." },
+          });
         } else {
           const queryText =
             "SELECT min(spot_no) as spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1 ";
@@ -134,6 +137,7 @@ const leaveSpot = (request, response) => {
   validate.create_spot_schema.validate({ jno: id, jno: user });
 
   const temp = validate.create_spot_schema.validate({ jno: id, jno: user });
+
   //console.log(temp.error)
   if (temp.error) {
     response
@@ -146,6 +150,13 @@ const leaveSpot = (request, response) => {
       // we don't need to dispose of the client (it will be undefined)
       try {
         await client.query("BEGIN");
+        const lot = "SELECT * from fms_parking_lot WHERE pd_lot_id=$1";
+        const ParkingLotRes = await client.query(lot, [id]);
+        const ParkingLotDetails = ParkingLotRes.rows[0];
+        response.status(400).json({
+          ...ParkingLotDetails,
+          ...{ message: "Thanks for Visiting. Please drive Safe..." },
+        });
         const queryText =
           "SELECT parking_spot as spot_no from fms_parking_history WHERE user_id=$2 AND parking_lot=$1 AND out_time IS NULL";
         const res = await client.query(queryText, [id, user]);
