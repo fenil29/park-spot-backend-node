@@ -18,12 +18,12 @@ const create_user_schema = Joi.object({
     .min(3)
     .max(30)
     .required(),
-  jaccess: Joi.alternatives().try(
-    Joi.string().valid("Provider"),
-    Joi.string().valid("provider"),
-    Joi.string().valid("User"),
-    Joi.string().valid("user")
-  ).required,
+
+  jaccess: Joi.string().required(),
+  // Joi.string().valid("provider"),
+  // Joi.string().valid("User"),
+  // Joi.string().valid("user")
+  //.valid("Provider", "provider", "User", "user"),
   jmobile: Joi.string().regex(/^\d{3}\d{3}\d{4}$/),
 });
 
