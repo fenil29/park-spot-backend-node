@@ -6,6 +6,7 @@ const uq = require("./user_queries.js");
 const phq = require("./ph_queries.js");
 const parkingq = require("./pl_queries");
 const spotq = require("./spot_queries");
+require("./store_parking_data");
 const port = 4000;
 
 app.use(bodyParser.json());
