@@ -7,6 +7,7 @@ const phq = require("./ph_queries.js");
 const parkingq = require("./pl_queries");
 const spotq = require("./spot_queries");
 const store_parking_data = require("./store_parking_data");
+const plhq = require("./plh_queries");
 const port = 4000;
 
 app.use(bodyParser.json());
@@ -16,7 +17,7 @@ app.use(
   })
 );
 
-// this function is for storing parking lot data in fms_parking_lot_history table for data analytics  
+// this function is for storing parking lot data in fms_parking_lot_history table for data analytics
 store_parking_data();
 
 app.get("/", (request, response) => {
@@ -59,6 +60,10 @@ app.post("/spot/left/:id", spotq.leaveSpot);
 app.post("/spot", spotq.createSD);
 app.put("/spot/:id", spotq.updateSD);
 app.delete("/spot/:id", spotq.deleteSD);
+
+//fms_parking_lot_history
+
+app.post("/lothistory", plhq.getPLHistory);
 
 app.listen(port, () => {
   console.log(`App running on port ${port}.`);
