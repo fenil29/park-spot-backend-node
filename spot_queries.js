@@ -153,7 +153,7 @@ const leaveSpot = (request, response) => {
           "SELECT parking_spot as spot_no from fms_parking_history WHERE user_id=$2 AND parking_lot=$1 AND out_time IS NULL";
         const res = await client.query(queryText, [id, user]);
         if (!res.rows.length) {
-          response.status(400).send("Error!");;
+          response.status(400).send("Error!");
         } else {
           const updateStatus =
             "UPDATE fms_parking_spot SET sd_status = 0 WHERE lot_id=$1 AND spot_no =$2";
