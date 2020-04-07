@@ -6,7 +6,7 @@ const uq = require("./user_queries.js");
 const phq = require("./ph_queries.js");
 const parkingq = require("./pl_queries");
 const spotq = require("./spot_queries");
-require("./store_parking_data");
+const store_parking_data = require("./store_parking_data");
 const port = 4000;
 
 app.use(bodyParser.json());
@@ -15,6 +15,9 @@ app.use(
     extended: true,
   })
 );
+
+// this function is for storing parking lot data in fms_parking_lot_history table for data analytics  
+store_parking_data();
 
 app.get("/", (request, response) => {
   response.json({ info: "Node.js, Express, and Postgres API" });

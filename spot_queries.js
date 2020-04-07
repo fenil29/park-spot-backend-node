@@ -62,17 +62,19 @@ const getSpot = (request, response) => {
       // we don't need to dispose of the client (it will be undefined)
       try {
         await client.query("BEGIN");
+        const lot = "SELECT * from fms_parking_lot WHERE pd_lot_id=$1";
+        const ParkingLotRes = await client.query(lot, [id]);
+        const ParkingLotDetails = ParkingLotRes.rows[0];
+
         const verify =
           "SELECT user_id from fms_parking_history where user_id=$2 AND parking_lot=$1 AND out_time IS NULL";
         const verifyres = await client.query(verify, [id, user]);
         if (verifyres.rows[0] != null) {
           response.status(400).json({
-            ...{ error_message: "User already present inside..." },
+            ...{ error_message: "You already entered in this parking..." },
+            ...ParkingLotDetails,
           });
         } else {
-          const lot = "SELECT * from fms_parking_lot WHERE pd_lot_id=$1";
-          const ParkingLotRes = await client.query(lot, [id]);
-          const ParkingLotDetails = ParkingLotRes.rows[0];
           // console.log(ParkingLotDetails)
           const full =
             "select occupied_spot,total_spot from fms_parking_lot where pd_lot_id=$1";
