@@ -62,39 +62,48 @@ const getSpot = (request, response) => {
       // we don't need to dispose of the client (it will be undefined)
       try {
         await client.query("BEGIN");
-        const lot = "SELECT * from fms_parking_lot WHERE pd_lot_id=$1";
-        const ParkingLotRes = await client.query(lot, [id]);
-        const ParkingLotDetails = ParkingLotRes.rows[0];
-        // console.log(ParkingLotDetails)
-        const full =
-          "select occupied_spot,total_spot from fms_parking_lot where pd_lot_id=$1";
-        const Value = [id];
-        const oc = await client.query(full, Value);
-        // console.log("oc:" + JSON.stringify(oc));
-        // console.log("oc:" + (oc.rows[0].occupied_spot));
-        if (oc.rows[0].occupied_spot == oc.rows[0].total_spot) {
+        const verify =
+          "SELECT user_id from fms_parking_history where user_id=$2 AND parking_lot=$1 AND out_time IS NULL";
+        const verifyres = await client.query(verify, [id, user]);
+        if (verifyres.rows[0] != null) {
           response.status(400).json({
-            ...ParkingLotDetails,
-            ...{ error_message: "Sorry Parking is full..." },
+            ...{ error_message: "User already present inside..." },
           });
         } else {
-          const queryText =
-            "SELECT min(spot_no) as spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1 ";
-          const res = await client.query(queryText, [id]);
-          const occupied =
-            "UPDATE fms_parking_lot SET occupied_spot = occupied_spot + 1 WHERE pd_lot_id=$1";
+          const lot = "SELECT * from fms_parking_lot WHERE pd_lot_id=$1";
+          const ParkingLotRes = await client.query(lot, [id]);
+          const ParkingLotDetails = ParkingLotRes.rows[0];
+          // console.log(ParkingLotDetails)
+          const full =
+            "select occupied_spot,total_spot from fms_parking_lot where pd_lot_id=$1";
           const Value = [id];
-          await client.query(occupied, Value);
-          const updateStatus =
-            "UPDATE fms_parking_spot SET sd_status = 1 WHERE lot_id=$1 AND spot_no =$2";
-          const Values = [id, Number(res.rows[0]["spot_no"])];
-          await client.query(updateStatus, Values);
-          const values2 = [user, id, Number(res.rows[0]["spot_no"])];
-          const updateInTime =
-            "insert into fms_parking_history values ($1,$2,$3,CURRENT_TIMESTAMP,NULL)";
-          await client.query(updateInTime, values2);
-          await client.query("COMMIT");
-          response.status(200).json({ ...res.rows[0], ...ParkingLotDetails });
+          const oc = await client.query(full, Value);
+          // console.log("oc:" + JSON.stringify(oc));
+          // console.log("oc:" + (oc.rows[0].occupied_spot));
+          if (oc.rows[0].occupied_spot == oc.rows[0].total_spot) {
+            response.status(400).json({
+              ...ParkingLotDetails,
+              ...{ error_message: "Sorry Parking is full..." },
+            });
+          } else {
+            const queryText =
+              "SELECT min(spot_no) as spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1 ";
+            const res = await client.query(queryText, [id]);
+            const occupied =
+              "UPDATE fms_parking_lot SET occupied_spot = occupied_spot + 1 WHERE pd_lot_id=$1";
+            const Value = [id];
+            await client.query(occupied, Value);
+            const updateStatus =
+              "UPDATE fms_parking_spot SET sd_status = 1 WHERE lot_id=$1 AND spot_no =$2";
+            const Values = [id, Number(res.rows[0]["spot_no"])];
+            await client.query(updateStatus, Values);
+            const values2 = [user, id, Number(res.rows[0]["spot_no"])];
+            const updateInTime =
+              "insert into fms_parking_history values ($1,$2,$3,CURRENT_TIMESTAMP,NULL)";
+            await client.query(updateInTime, values2);
+            await client.query("COMMIT");
+            response.status(200).json({ ...res.rows[0], ...ParkingLotDetails });
+          }
         }
       } catch (e) {
         await client.query("ROLLBACK");
@@ -153,10 +162,7 @@ const leaveSpot = (request, response) => {
         const lot = "SELECT * from fms_parking_lot WHERE pd_lot_id=$1";
         const ParkingLotRes = await client.query(lot, [id]);
         const ParkingLotDetails = ParkingLotRes.rows[0];
-        response.status(400).json({
-          ...ParkingLotDetails,
-          ...{ message: "Thanks for Visiting. Please drive Safe..." },
-        });
+
         const queryText =
           "SELECT parking_spot as spot_no from fms_parking_history WHERE user_id=$2 AND parking_lot=$1 AND out_time IS NULL";
         const res = await client.query(queryText, [id, user]);
@@ -181,10 +187,14 @@ const leaveSpot = (request, response) => {
             "select out_time - in_time as Total_time from fms_parking_history WHERE user_id=$1 AND parking_lot=$2";
           const values3 = [user, id];
           const res1 = await client.query(totalTime, values3);
-
+          console.log(res1);
           await client.query("COMMIT");
-          var hours = response.status(200).json(res1.rows[0].total_time.hours);
-          var mins = response.status(200).json(res1.rows[0].total_time.minutes);
+          response.status(200).json({
+            ...ParkingLotDetails,
+            ...{ message: "Thanks for Visiting. Please drive Safe..." },
+          });
+          // var hours = response.status(200).json(res1.rows[0].total_time.hours);
+          // var mins = response.status(200).json(res1.rows[0].total_time.minutes);
           //console.log(hours);
           //console.log("minutes:" + mins);
           //response.status(200).json(res.rows[0]);

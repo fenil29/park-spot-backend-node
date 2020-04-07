@@ -123,45 +123,55 @@ const createUser = (request, response) => {
     jemail: email,
     jaccess: access,
   });
-  console.log(temp.error);
-  const emailvalidation =
-    "Select user_email_id from fms_user where user_email_id=$1";
-  const emailvalue = [email];
-  // callback
-  pool.query(emailvalidation, emailvalue, (err, res) => {
-    if (emailvalidation.rows != null) {
-      response.status(400).send(`User already exists.`);
-    } else {
-      if (temp.error) {
-        response
-          .status(201)
-          .send("User was not added. Invalid entry. Please try again.");
+  //console.log(temp.error);
+  // const emailvalidation =
+  //   "Select user_email_id from fms_user where user_email_id=$1";
+  // const emailvalue = [email];
+  // // callback
+  // pool.query(emailvalidation, emailvalue, (err, res) => {
+  //   if (emailvalidation.rows != null) {
+  //     response.status(400).send(`User already exists.`);
+  //   } else {
+  if (temp.error) {
+    response
+      .status(201)
+      .send(
+        "User was not added. Invalid entry. Please Enter proper details and Password of minimum 5 characters."
+      );
+  } else {
+    //user id
+    let userid;
+    userid = "SELECT max(user_user_id) as user_user_id from fms_user";
+    pool.query(userid, (err, res) => {
+      if (err) {
+        console.log(err.stack);
       } else {
-        const id = "Select max(user_user_id) from fms_user";
-
-        const text =
-          "INSERT INTO fms_user (user_password,user_email_id,user_first_name,user_last_name, access_right,user_user_id) VALUES($1, $2,$3,$4,$5,$6)";
-
-        const values = [pass, email, fname, lname, access, id + 1];
-        // callback
-        pool.query(text, values, (err, res) => {
-          if (err) {
-            console.log(err.stack);
-          } else {
-            console.log(res.rows[0]);
-            response.status(201).send(`User added`);
-
-            //   { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
-          }
-        });
+        userid = parseInt(res.rows[0].user_user_id);
+        console.log(parseInt(res.rows[0].user_user_id));
       }
-    }
-  });
+
+      const text =
+        "INSERT INTO fms_user (user_password,user_email_id,user_first_name,user_last_name,access_right, user_user_id) VALUES($1, $2,$3,$4,$5,$6)";
+
+      const values = [pass, email, fname, lname, access, userid + 1]; //access,access_right,
+      // callback
+      pool.query(text, values, (err, res) => {
+        if (err) {
+          response.status(201).send("Email-id already exists.");
+        } else {
+          console.log(res.rows[0]);
+          response.status(201).send(`User added`);
+
+          //   { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
+        }
+      });
+    });
+  }
 };
 
 const updateUser = (request, response) => {
   const id = parseInt(request.params.id);
-  const { pass, email, fname, lname, mobile, access } = request.body;
+  const { pass, email, fname, lname, access } = request.body;
   validate.create_user_schema.validate({
     jid: id,
     jpass: pass,
