@@ -130,7 +130,7 @@ const createUser = (request, response) => {
   console.log(temp.error);
   if (temp.error) {
     response
-      .status(201)
+      .status(400)
       .send("User was not added. Invalid entry. Please try again.");
   } else {
     const text =
