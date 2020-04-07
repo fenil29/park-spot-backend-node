@@ -171,7 +171,7 @@ const createUser = (request, response) => {
 
 const updateUser = (request, response) => {
   const id = parseInt(request.params.id);
-  const { pass, email, fname, lname, mobile, access } = request.body;
+  const { pass, email, fname, lname, access } = request.body;
   validate.create_user_schema.validate({
     jid: id,
     jpass: pass,

@@ -162,10 +162,7 @@ const leaveSpot = (request, response) => {
         const lot = "SELECT * from fms_parking_lot WHERE pd_lot_id=$1";
         const ParkingLotRes = await client.query(lot, [id]);
         const ParkingLotDetails = ParkingLotRes.rows[0];
-        response.status(400).json({
-          ...ParkingLotDetails,
-          ...{ message: "Thanks for Visiting. Please drive Safe..." },
-        });
+
         const queryText =
           "SELECT parking_spot as spot_no from fms_parking_history WHERE user_id=$2 AND parking_lot=$1 AND out_time IS NULL";
         const res = await client.query(queryText, [id, user]);
@@ -190,10 +187,14 @@ const leaveSpot = (request, response) => {
             "select out_time - in_time as Total_time from fms_parking_history WHERE user_id=$1 AND parking_lot=$2";
           const values3 = [user, id];
           const res1 = await client.query(totalTime, values3);
-
+          console.log(res1);
           await client.query("COMMIT");
-          var hours = response.status(200).json(res1.rows[0].total_time.hours);
-          var mins = response.status(200).json(res1.rows[0].total_time.minutes);
+          response.status(200).json({
+            ...ParkingLotDetails,
+            ...{ message: "Thanks for Visiting. Please drive Safe..." },
+          });
+          // var hours = response.status(200).json(res1.rows[0].total_time.hours);
+          // var mins = response.status(200).json(res1.rows[0].total_time.minutes);
           //console.log(hours);
           //console.log("minutes:" + mins);
           //response.status(200).json(res.rows[0]);

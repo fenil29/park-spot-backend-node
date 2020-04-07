@@ -17,12 +17,13 @@ const getUserById = (request, response) => {
   const id = parseInt(request.params.id);
 
   pool.query(
-    "SELECT * FROM fms_parking_history WHERE user_id = $1",
+    "SELECT * FROM fms_parking_history INNER JOIN fms_parking_lot ON fms_parking_history.parking_lot=fms_parking_lot.pd_lot_id where fms_parking_history.user_id = $1 ORDER BY out_time DESC",
     [id],
     (error, results) => {
       if (error) {
         throw error;
       }
+      console.log(results.rows);
       response.status(200).json(results.rows);
     }
   );
@@ -42,13 +43,13 @@ const createhistory = (request, response) => {
   validate.create_user_schema.validate({
     jid: userid,
     jid: spotid,
-    jid: lotid
+    jid: lotid,
   });
   validate.create_user_schema.validate({});
   const temp = validate.create_user_schema.validate({
     jid: userid,
     jid: spotid,
-    jid: lotid
+    jid: lotid,
   });
   console.log(temp.error);
   if (temp.error) {
@@ -80,13 +81,13 @@ const updateHistory = (request, response) => {
   validate.create_user_schema.validate({
     jid: userid,
     jid: spotid,
-    jid: lotid
+    jid: lotid,
   });
   validate.create_user_schema.validate({});
   const temp = validate.create_user_schema.validate({
     jid: userid,
     jid: spotid,
-    jid: lotid
+    jid: lotid,
   });
   if (temp.error) {
     response
@@ -126,5 +127,5 @@ module.exports = {
   getHistory,
   createhistory,
   updateHistory,
-  deleteHistory
+  deleteHistory,
 };
