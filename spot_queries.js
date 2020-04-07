@@ -137,6 +137,7 @@ const leaveSpot = (request, response) => {
   validate.create_spot_schema.validate({ jno: id, jno: user });
 
   const temp = validate.create_spot_schema.validate({ jno: id, jno: user });
+
   //console.log(temp.error)
   if (temp.error) {
     response
@@ -149,6 +150,13 @@ const leaveSpot = (request, response) => {
       // we don't need to dispose of the client (it will be undefined)
       try {
         await client.query("BEGIN");
+        const lot = "SELECT * from fms_parking_lot WHERE pd_lot_id=$1";
+        const ParkingLotRes = await client.query(lot, [id]);
+        const ParkingLotDetails = ParkingLotRes.rows[0];
+        response.status(400).json({
+          ...ParkingLotDetails,
+          ...{ message: "Thanks for Visiting. Please drive Safe..." },
+        });
         const queryText =
           "SELECT parking_spot as spot_no from fms_parking_history WHERE user_id=$2 AND parking_lot=$1 AND out_time IS NULL";
         const res = await client.query(queryText, [id, user]);

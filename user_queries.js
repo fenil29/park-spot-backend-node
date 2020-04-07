@@ -106,49 +106,57 @@ const login = (request, response) => {
 
 const createUser = (request, response) => {
   //console.log(request.body)
-  const { id, email, pass, fname, lname, mobile, access } = request.body;
+  const { email, pass, fname, lname, access } = request.body;
 
   validate.create_user_schema.validate({
-    jid: id,
     jpass: pass,
     jname: fname,
     jname: lname,
     jemail: email,
-    jmobile: mobile,
-    jaccess: access
+    jaccess: access,
   });
   validate.create_user_schema.validate({});
   const temp = validate.create_user_schema.validate({
-    jid: id,
     jpass: pass,
     jname: fname,
     jname: lname,
     jemail: email,
-    jmobile: mobile,
-    jaccess: access
+    jaccess: access,
   });
   console.log(temp.error);
-  if (temp.error) {
-    response
-      .status(400)
-      .send("User was not added. Invalid entry. Please try again.");
-  } else {
-    const text =
-      "INSERT INTO fms_user (user_user_id,user_password,user_email_id,user_first_name,user_last_name, user_mobile_no,access_right) VALUES($1, $2,$3,$4,$5,$6,$7)";
-
-    const values = [id, pass, email, fname, lname, mobile, access];
-    // callback
-    pool.query(text, values, (err, res) => {
-      if (err) {
-        console.log(err.stack);
+  const emailvalidation =
+    "Select user_email_id from fms_user where user_email_id=$1";
+  const emailvalue = [email];
+  // callback
+  pool.query(emailvalidation, emailvalue, (err, res) => {
+    if (emailvalidation.rows != null) {
+      response.status(400).send(`User already exists.`);
+    } else {
+      if (temp.error) {
+        response
+          .status(201)
+          .send("User was not added. Invalid entry. Please try again.");
       } else {
-        console.log(res.rows[0]);
-        response.status(201).send(`User added with ID: ${id}`);
+        const id = "Select max(user_user_id) from fms_user";
 
-        //   { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
+        const text =
+          "INSERT INTO fms_user (user_password,user_email_id,user_first_name,user_last_name, access_right,user_user_id) VALUES($1, $2,$3,$4,$5,$6)";
+
+        const values = [pass, email, fname, lname, access, id + 1];
+        // callback
+        pool.query(text, values, (err, res) => {
+          if (err) {
+            console.log(err.stack);
+          } else {
+            console.log(res.rows[0]);
+            response.status(201).send(`User added`);
+
+            //   { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
+          }
+        });
       }
-    });
-  }
+    }
+  });
 };
 
 const updateUser = (request, response) => {
@@ -160,8 +168,8 @@ const updateUser = (request, response) => {
     jname: fname,
     jname: lname,
     jemail: email,
-    jmobile: mobile,
-    jaccess: access
+
+    jaccess: access,
   });
   validate.create_user_schema.validate({});
   const temp = validate.create_user_schema.validate({
@@ -170,8 +178,8 @@ const updateUser = (request, response) => {
     jname: fname,
     jname: lname,
     jemail: email,
-    jmobile: mobile,
-    jaccess: access
+
+    jaccess: access,
   });
   if (temp.error) {
     response
@@ -179,8 +187,8 @@ const updateUser = (request, response) => {
       .send("User was not updated. Invalid entry. Please try again.");
   } else {
     pool.query(
-      "UPDATE fms_user SET user_email_id= $1,user_first_name = $2, user_last_name = $3,user_mobile_no =$4, user_password =$6 ,access_right=$7 WHERE user_user_id = $5",
-      [email, , fname, lname, mobile, id, pass, access],
+      "UPDATE fms_user SET user_email_id= $1,user_first_name = $2, user_last_name = $3, user_password =$5 ,access_right=$6 WHERE user_user_id = $4",
+      [email, , fname, lname, id, pass, access],
       (error, result) => {
         if (error) {
           throw error;
@@ -214,5 +222,5 @@ module.exports = {
   login,
   createUser,
   updateUser,
-  deleteUser
+  deleteUser,
 };

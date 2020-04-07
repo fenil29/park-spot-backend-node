@@ -1,14 +1,16 @@
 const Joi = require("@hapi/joi");
 const create_user_schema = Joi.object({
-  jid: Joi.number()
-    .min(1)
-    .required(),
-
   jemail: Joi.string()
     .email({
       minDomainSegments: 2,
-      tlds: { allow: ["com", "net", "in", "org"] }
+      tlds: { allow: ["com", "net", "in", "org"] },
     })
+    .required(),
+
+  jid: Joi.number().min(1),
+  jpass: Joi.string()
+    .regex(/^[A-Za-z0-9]{5,}$/)
+    .min(5)
     .required(),
 
   jname: Joi.string()
@@ -16,15 +18,17 @@ const create_user_schema = Joi.object({
     .min(3)
     .max(30)
     .required(),
-  jaccess: Joi.string().regex(/^[Provider/User]$/).required,
-
-  jmobile: Joi.string().regex(/^\d{3}\d{3}\d{4}$/)
+  jaccess: Joi.alternatives().try(
+    Joi.string().valid("Provider"),
+    Joi.string().valid("provider"),
+    Joi.string().valid("User"),
+    Joi.string().valid("user")
+  ).required,
+  jmobile: Joi.string().regex(/^\d{3}\d{3}\d{4}$/),
 });
 
 const create_pd_schema = Joi.object({
-  jid: Joi.number()
-    .min(1)
-    .required(),
+  jid: Joi.number().min(1).required(),
 
   jname: Joi.string()
     .regex(/^[a-zA-Z]+$/)
@@ -43,12 +47,9 @@ const create_pd_schema = Joi.object({
     )
     .required(),
 
-  jentry: Joi.number()
-    .min(0)
-    .max(1)
-    .required(),
+  jentry: Joi.number().min(0).max(1).required(),
 
-  jprice: Joi.number().required()
+  jprice: Joi.number().required(),
 });
 
 const update_pd_schema = Joi.object({
@@ -66,17 +67,13 @@ const update_pd_schema = Joi.object({
     /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/
   ),
 
-  jentry: Joi.number()
-    .min(0)
-    .max(1),
+  jentry: Joi.number().min(0).max(1),
 
-  jprice: Joi.number()
+  jprice: Joi.number(),
 });
 
 const create_ph_schema = Joi.object({
-  jid: Joi.number()
-    .min(1)
-    .required()
+  jid: Joi.number().min(1).required(),
 });
 
 const create_spot_schema = Joi.object({
@@ -87,21 +84,17 @@ const create_spot_schema = Joi.object({
   // jstatus: Joi.string()
   // .regex(/^[0-1]$/).required(),
 
-  jno: Joi.number()
-    .min(1)
-    .required()
+  jno: Joi.number().min(1).required(),
 });
 
 const login_schema = Joi.object({
-  jid: Joi.number()
-    .min(1)
-    .required(),
+  jid: Joi.number().min(1).required(),
 
   jpass: Joi.string()
     .regex(/^[a-zA-Z0-9]+$/)
     .min(5)
     .max(30)
-    .required()
+    .required(),
 });
 
 module.exports = {
@@ -110,5 +103,5 @@ module.exports = {
   update_pd_schema,
   create_ph_schema,
   create_spot_schema,
-  login_schema
+  login_schema,
 };
