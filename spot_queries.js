@@ -169,32 +169,35 @@ const leaveSpot = (request, response) => {
         const queryText =
           "SELECT parking_spot as spot_no from fms_parking_history WHERE user_id=$2 AND parking_lot=$1 AND out_time IS NULL";
         const res = await client.query(queryText, [id, user]);
+        if (!res.rows.length) {
+          response.status(400).send("Error!");
+        } else {
+          const updateStatus =
+            "UPDATE fms_parking_spot SET sd_status = 0 WHERE lot_id=$1 AND spot_no =$2";
+          const Values = [id, Number(res.rows[0]["spot_no"])];
+          await client.query(updateStatus, Values);
 
-        const updateStatus =
-          "UPDATE fms_parking_spot SET sd_status = 0 WHERE lot_id=$1 AND spot_no =$2";
-        const Values = [id, Number(res.rows[0]["spot_no"])];
-        await client.query(updateStatus, Values);
+          const occupied =
+            "UPDATE fms_parking_lot SET occupied_spot = occupied_spot - 1 WHERE pd_lot_id=$1";
+          const Value = [id];
+          await client.query(occupied, Value);
 
-        const occupied =
-          "UPDATE fms_parking_lot SET occupied_spot = occupied_spot - 1 WHERE pd_lot_id=$1";
-        const Value = [id];
-        await client.query(occupied, Value);
+          const values2 = [user, id];
+          const updateOutTime =
+            "update fms_parking_history set out_time = CURRENT_TIMESTAMP WHERE user_id=$1 AND parking_lot=$2";
+          await client.query(updateOutTime, values2);
+          const totalTime =
+            "select out_time - in_time as Total_time from fms_parking_history WHERE user_id=$1 AND parking_lot=$2";
+          const values3 = [user, id];
+          const res1 = await client.query(totalTime, values3);
 
-        const values2 = [user, id];
-        const updateOutTime =
-          "update fms_parking_history set out_time = CURRENT_TIMESTAMP WHERE user_id=$1 AND parking_lot=$2";
-        await client.query(updateOutTime, values2);
-        const totalTime =
-          "select out_time - in_time as Total_time from fms_parking_history WHERE user_id=$1 AND parking_lot=$2";
-        const values3 = [user, id];
-        const res1 = await client.query(totalTime, values3);
-
-        await client.query("COMMIT");
-        var hours = response.status(200).json(res1.rows[0].total_time.hours);
-        var mins = response.status(200).json(res1.rows[0].total_time.minutes);
-        //console.log(hours);
-        //console.log("minutes:" + mins);
-        //response.status(200).json(res.rows[0]);
+          await client.query("COMMIT");
+          var hours = response.status(200).json(res1.rows[0].total_time.hours);
+          var mins = response.status(200).json(res1.rows[0].total_time.minutes);
+          //console.log(hours);
+          //console.log("minutes:" + mins);
+          //response.status(200).json(res.rows[0]);
+        }
       } catch (e) {
         await client.query("ROLLBACK");
         throw e;
