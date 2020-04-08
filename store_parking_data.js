@@ -9,7 +9,7 @@ module.exports = function store_parking_data() {
     let minutes = now.getMinutes();
     let seconds = now.getSeconds();
     pool.query(
-      "SELECT * FROM fms_parking_lot ORDER BY pd_lot_id",
+      "SELECT * FROM fms_parking_lot_history",
       (error, results) => {
         if (error) {
           throw error;
