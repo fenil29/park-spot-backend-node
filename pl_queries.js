@@ -78,7 +78,6 @@ const createPD = (request, response) => {
     price,
     owner_id,
     total,
-    occupied,
   } = request.body;
 
   const temp = validate.create_pd_schema.validate({
@@ -96,6 +95,7 @@ const createPD = (request, response) => {
     console.log(temp.error);
     response.status(400).send("Invalid Data");
   } else {
+    //for inserting user
     const text =
       "INSERT INTO fms_parking_lot (pd_loc_name,pd_loc_address,pd_loc_pincode,longitude,latitude,pd_hrly_rate,pd_owner_id,total_spot) VALUES($1, $2,$3,$4,$5,$6,$7,$8)";
     const values = [
@@ -108,18 +108,73 @@ const createPD = (request, response) => {
       owner_id,
       total,
     ];
-    // callback
     pool.query(text, values, (err, res) => {
       if (err) {
         console.log(err.stack);
         response.status(400).json("error");
       } else {
-        console.log(res.rows[0]);
-        response.status(201).send(`Parking Lot Registered...`);
-        // { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
+        console.log("Parking Lot Added...");
+        //for getting details of user
+        const pl_id =
+          "SELECT pd_lot_id from fms_parking_lot WHERE pd_loc_name = $1 AND pd_owner_id=$2";
+        pool.query(pl_id, [name, owner_id], (err, res) => {
+          if (err) {
+            console.log(err);
+          } else {
+            let lot_id = Number(res.rows[0]["pd_lot_id"]);
+            for (let index = 1; index <= total; index++) {
+              var text =
+                "INSERT INTO fms_parking_spot (spot_no,sd_status,lot_id) VALUES($1, $2,$3)";
+              var values = [index, 0, lot_id];
+
+              pool.query(text, values, (err, res) => {
+                if (err) {
+                  console.log(err.stack);
+                } else {
+                  //console.log(res.rows[0])
+                  //response.status(201).send(`Spots added `)
+                  // { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
+                }
+              });
+            }
+            console.log(res.rows);
+            userDetail = res.rows[0];
+            //delete user["user_mobile_no"];
+            delete userDetail["user_password"];
+            response.status(201).json(userDetail);
+          }
+        });
       }
     });
   }
+  //else {
+  //   const text =
+  //     "INSERT INTO fms_parking_lot (pd_loc_name,pd_loc_address,pd_loc_pincode,longitude,latitude,pd_hrly_rate,pd_owner_id,total_spot) VALUES($1, $2,$3,$4,$5,$6,$7,$8)";
+  //   const values = [
+  //     name,
+  //     address,
+  //     pin,
+  //     longitude,
+  //     latitude,
+  //     price,
+  //     owner_id,
+  //     total,
+  //   ];
+  //   // callback
+  //   pool.query(text, values, (err, res) => {
+  //     if (err) {
+  //       console.log(err.stack);
+  //       response.status(400).json({
+  //         ...{ error_message: "Parking Lot already exists...." },
+  //       });
+  //     } else {
+  //       console.log(res.rows[0]);
+  //       response.status(201).send(`Parking Lot Registered...`);
+  //       // { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
+
+  //     }
+  //   });
+  // }
 };
 
 //total is remaining
