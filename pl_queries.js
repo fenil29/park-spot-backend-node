@@ -89,15 +89,12 @@ const createPD = (request, response) => {
     jlat: latitude,
     jadd: address,
     jpin: pin,
-    jprice: occupied,
-    jprice: total,
+    jtotal: total,
   });
   //console.log(temp.error)
   if (temp.error) {
     console.log(temp.error);
-    response
-      .status(400)
-      .send("Parking was not addressed. Invalid entry. Please try again.");
+    response.status(400).send("Invalid Data");
   } else {
     const text =
       "INSERT INTO fms_parking_lot (pd_loc_name,pd_loc_address,pd_loc_pincode,longitude,latitude,pd_hrly_rate,pd_owner_id,total_spot) VALUES($1, $2,$3,$4,$5,$6,$7,$8)";
@@ -115,9 +112,7 @@ const createPD = (request, response) => {
     pool.query(text, values, (err, res) => {
       if (err) {
         console.log(err.stack);
-        response.status(400).json({
-          ...{ error_message: "Parking Lot already exists...." },
-        });
+        response.status(400).json("error");
       } else {
         console.log(res.rows[0]);
         response.status(201).send(`Parking Lot Registered...`);
