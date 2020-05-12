@@ -14,21 +14,18 @@ module.exports = function store_parking_data() {
         if (error) {
           throw error;
         }
-
         for (record of results.rows) {
           // record = results.rows[0];
           // console.log(record);
           const values = [record.occupied_spot, record.pd_lot_id];
-
           pool.query(
-            "SELECT * FROM fms_parking_lot_history WHERE pd_lot_id=$1 AND date = CURRENT_DATE",
+            "SELECT * FROM fms_parking_lot_history WHERE pd_lot_id=$1 AND date=CURRENT_DATE",
             [record.pd_lot_id],
             (error, results) => {
               let queryText;
               if (error) {
                 throw error;
               }
-
               if (results.rows.length == 0) {
                 queryText = `insert into fms_parking_lot_history  (date,hour_${hour},pd_lot_id) values (CURRENT_DATE,$1,$2)`;
               } else {
