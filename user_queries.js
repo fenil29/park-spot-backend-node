@@ -91,14 +91,14 @@ const login = (request, response) => {
 
 const createUser = (request, response) => {
   //console.log(request.body)
-  const { email, pass, fname, lname, access } = request.body;
+  const { email, pass, fname, lname, access_right } = request.body;
 
   validate.create_user_schema.validate({
     jpass: pass,
     jname: fname,
     jname: lname,
     jemail: email,
-    jaccess: access,
+    jaccess: access_right,
   });
   validate.create_user_schema.validate({});
   const temp = validate.create_user_schema.validate({
@@ -106,7 +106,7 @@ const createUser = (request, response) => {
     jname: fname,
     jname: lname,
     jemail: email,
-    jaccess: access,
+    jaccess: access_right,
   });
   console.log(temp.error);
   if (temp.error) {
@@ -116,7 +116,7 @@ const createUser = (request, response) => {
     const text =
       "INSERT INTO fms_user (user_password,user_email_id,user_first_name,user_last_name,access_right) VALUES($1, $2,$3,$4,$5)";
 
-    const values = [pass, email, fname, lname, access];
+    const values = [pass, email, fname, lname, access_right];
     pool.query(text, values, (err, res) => {
       if (err) {
         response.status(400).json("Email-id already exists");
