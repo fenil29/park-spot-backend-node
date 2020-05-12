@@ -115,49 +115,32 @@ const createUser = (request, response) => {
         "User was not added. Invalid entry. Please Enter proper details and Password of minimum 5 characters."
       );
   } else {
-    (async () => {
-      const client = await pool.connect();
-      try {
-        //for inserting user
-        await client.query("BEGIN");
-        const text =
-          "INSERT INTO fms_user (user_password,user_email_id,user_first_name,user_last_name,access_right) VALUES($1, $2,$3,$4,$5)";
+    //for inserting user
+    client.query("BEGIN");
+    const text =
+      "INSERT INTO fms_user (user_password,user_email_id,user_first_name,user_last_name,access_right) VALUES($1, $2,$3,$4,$5)";
 
-        const values = [pass, email, fname, lname, access];
-        await client.query(text, values, (err, res) => {
+    const values = [pass, email, fname, lname, access];
+    client.query(text, values, (err, res) => {
+      if (err) {
+        response.status(400).json({ error_message: "Email-id already exists" });
+      } else {
+        console.log("User Added...");
+        //for getting details of user
+        const user = "SELECT * from fms_user WHERE user_email_id = $1";
+        client.query(user, [email], (err, res) => {
           if (err) {
-            response
-              .status(400)
-              .json({ error_message: "Email-id already exists" });
+            console.log(err);
           } else {
-            console.log("User Added...");
-            //for getting details of user
-            const user = "SELECT * from fms_user WHERE user_email_id = $1";
-            client.query(user, [email], (err, res) => {
-              if (err) {
-                response
-                  .status(400)
-                  .json({ error_message: "Email-id already exists" });
-              } else {
-                console.log(res.rows);
-                userdetail = res.rows[0];
-                //delete user["user_mobile_no"];
-                delete userdetail["user_password"];
-                response.status(201).json(userdetail);
-              }
-            });
+            console.log(res.rows);
+            userdetail = res.rows[0];
+            //delete user["user_mobile_no"];
+            delete userdetail["user_password"];
+            response.status(201).json(userdetail);
           }
-          //   { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
         });
-        await client.query("COMMIT");
-        response.status(200).json({ ...res.rows[0], ...ParkingLotDetails });
-      } catch (e) {
-        await client.query("ROLLBACK");
-        throw e;
-      } finally {
-        client.release();
       }
-    })().catch((e) => console.error(e.stack));
+    });
   }
 };
 
