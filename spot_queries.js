@@ -117,35 +117,9 @@ const getSpot = (request, response) => {
   }
 };
 
-//let spot_no;
-// pool.query(
-//   "SELECT min(spot_no) as spot_no from fms_parking_spot WHERE sd_status = 0 AND lot_id=$1 ",
-//   [id],
-//   (error, results) => {
-//     if (!results.rows[0]["spot_no"]) {
-//       response.send("Parking is full. ");
-//     } else {
-//       spot_no = Number(results.rows[0]["spot_no"]);
-//       //response.status(200).json(results.rows[0]);
-//       pool.query(
-//         "UPDATE fms_parking_spot SET sd_status = 1 WHERE lot_id=$1 AND spot_no =$2 ",
-//         [id, spot_no],
-//         (error, results) => {
-//           if (error) {
-//             //throw error;
-//             console.log(spot_no);
-//             console.log(error);
-//           }
-//           //response.send("Status Updated");
-//         }
-//       );
-//     }
-//   }
-// );
 const leaveSpot = (request, response) => {
   const id = request.params.id;
   const user = request.body.user;
-  validate.create_spot_schema.validate({ jno: id, jno: user });
 
   const temp = validate.create_spot_schema.validate({ jno: id, jno: user });
 
@@ -214,7 +188,6 @@ const leaveSpot = (request, response) => {
 const createSD = (request, response) => {
   console.log(request.body);
   const { no, lot } = request.body;
-  validate.create_spot_schema.validate({ jno: no, jno: lot });
 
   const temp = validate.create_spot_schema.validate({ jno: no, jno: lot });
   //console.log(temp.error)
@@ -246,7 +219,6 @@ const createSD = (request, response) => {
 const updateSD = (request, response) => {
   const id = parseInt(request.params.id);
   const { status, spot } = request.body;
-  validate.create_spot_schema.validate({ jid: id, jstatus: status, jid: spot });
 
   const temp = validate.create_spot_schema.validate({
     jid: id,

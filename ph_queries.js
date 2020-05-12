@@ -40,12 +40,6 @@ const createhistory = (request, response) => {
   //console.log(request.body)
   const { userid, spotid, lotid } = request.body;
 
-  validate.create_user_schema.validate({
-    jid: userid,
-    jid: spotid,
-    jid: lotid,
-  });
-  validate.create_user_schema.validate({});
   const temp = validate.create_user_schema.validate({
     jid: userid,
     jid: spotid,
@@ -78,12 +72,6 @@ const createhistory = (request, response) => {
 const updateHistory = (request, response) => {
   const id = parseInt(request.params.id);
   const { spotid, lotid } = request.body;
-  validate.create_user_schema.validate({
-    jid: userid,
-    jid: spotid,
-    jid: lotid,
-  });
-  validate.create_user_schema.validate({});
   const temp = validate.create_user_schema.validate({
     jid: userid,
     jid: spotid,

@@ -80,17 +80,6 @@ const createPD = (request, response) => {
     total,
     occupied,
   } = request.body;
-  validate.create_pd_schema.validate({
-    jid: owner_id,
-    jname: name,
-    jprice: price,
-    jlon: longitude,
-    jlat: latitude,
-    jadd: address,
-    jpin: pin,
-    jprice: total,
-    jprice: occupied,
-  });
 
   const temp = validate.create_pd_schema.validate({
     jid: owner_id,
@@ -143,10 +132,7 @@ const createPD = (request, response) => {
 const updatePD = (request, response) => {
   const id = parseInt(request.params.id);
   const { name, price } = request.body;
-  validate.update_pd_schema.validate({
-    jname: name,
-    jprice: price,
-  });
+
   const temp = validate.update_pd_schema.validate({
     jid: id,
     jname: name,

@@ -60,8 +60,7 @@ const getUserBylname = (request, response) => {
 
 const login = (request, response) => {
   const { email, pass } = request.body;
-  validate.login_schema.validate({ jemail: email, jpass: pass });
-  validate.login_schema.validate({});
+
   const temp = validate.login_schema.validate({ jemail: email, jpass: pass });
   if (temp.error) {
     response.status(400).send("Please enter correct E-mail or password");
@@ -93,14 +92,6 @@ const createUser = (request, response) => {
   //console.log(request.body)
   const { email, pass, fname, lname, access_right } = request.body;
 
-  validate.create_user_schema.validate({
-    jpass: pass,
-    jname: fname,
-    jname: lname,
-    jemail: email,
-    jaccess: access_right,
-  });
-  validate.create_user_schema.validate({});
   const temp = validate.create_user_schema.validate({
     jpass: pass,
     jname: fname,
@@ -143,16 +134,7 @@ const createUser = (request, response) => {
 const updateUser = (request, response) => {
   const id = parseInt(request.params.id);
   const { pass, email, fname, lname, access } = request.body;
-  validate.create_user_schema.validate({
-    jid: id,
-    jpass: pass,
-    jname: fname,
-    jname: lname,
-    jemail: email,
 
-    jaccess: access,
-  });
-  validate.create_user_schema.validate({});
   const temp = validate.create_user_schema.validate({
     jid: id,
     jpass: pass,
