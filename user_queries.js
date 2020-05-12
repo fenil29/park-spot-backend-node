@@ -64,7 +64,7 @@ const login = (request, response) => {
   validate.login_schema.validate({});
   const temp = validate.login_schema.validate({ jemail: email, jpass: pass });
   if (temp.error) {
-    response.status(400).send("Please enter correct E-mail or password.");
+    response.status(400).send("invalid data");
   } else {
     pool.query(
       "SELECT * FROM fms_user WHERE user_email_id = $1 AND user_password=$2",
@@ -79,7 +79,7 @@ const login = (request, response) => {
               .send("Please enter correct E-mail or password");
           } else {
             user = results.rows[0];
-            delete user["user_mobile_no"];
+            // delete user["user_mobile_no"];
             delete user["user_password"];
             response.status(200).json(user);
           }
@@ -126,18 +126,18 @@ const createUser = (request, response) => {
         const values = [pass, email, fname, lname, access];
         await client.query(text, values, (err, res) => {
           if (err) {
-            response.status(400).json({
-              ...{ error_message: "Email-id already exists...." },
-            });
+            response
+              .status(400)
+              .json({ error_message: "Email-id already exists" });
           } else {
             console.log("User Added...");
             //for getting details of user
             const user = "SELECT * from fms_user WHERE user_email_id = $1";
             client.query(user, [email], (err, res) => {
               if (err) {
-                response.status(400).json({
-                  ...{ error_message: "Email-id already exists...." },
-                });
+                response
+                  .status(400)
+                  .json({ error_message: "Email-id already exists" });
               } else {
                 console.log(res.rows);
                 userdetail = res.rows[0];
