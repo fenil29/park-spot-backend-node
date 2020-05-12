@@ -160,10 +160,13 @@ const leaveSpot = (request, response) => {
             "update fms_parking_history set out_time = CURRENT_TIMESTAMP WHERE user_id=$1 AND parking_lot=$2";
           await client.query(updateOutTime, values2);
           const totalTime =
-            "select out_time - in_time as Total_time from fms_parking_history WHERE user_id=$1 AND parking_lot=$2";
+            "select MAX(record),(out_time-in_time) as total_time from fms_parking_history where user_id = $1  AND parking_lot=$2 GROUP BY total_time ORDER BY MAX(record) DESC;";
           const values3 = [user, id];
           const res1 = await client.query(totalTime, values3);
-          console.log(res1);
+          const time = res1.rows[0]["Total_time"];
+          const hrs = time.split(":")[0];
+          const mins = time.split(":")[1];
+
           await client.query("COMMIT");
           response.status(200).json({
             ...ParkingLotDetails,
