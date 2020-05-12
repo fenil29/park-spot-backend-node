@@ -78,35 +78,36 @@ const createPD = (request, response) => {
     price,
     owner_id,
     total,
-    occupied
+    occupied,
   } = request.body;
   validate.create_pd_schema.validate({
     jid: owner_id,
     jname: name,
     jprice: price,
-    jcood: longitude,
-    jcood: latitude,
-    jaddress: address,
+    jlon: longitude,
+    jlat: latitude,
+    jadd: address,
     jpin: pin,
     jprice: total,
-    jprice: occupied
+    jprice: occupied,
   });
 
   const temp = validate.create_pd_schema.validate({
     jid: owner_id,
     jname: name,
     jprice: price,
-    jcood: longitude,
-    jcood: latitude,
-    jaddress: address,
+    jlon: longitude,
+    jlat: latitude,
+    jadd: address,
     jpin: pin,
     jprice: occupied,
-    jprice: total
+    jprice: total,
   });
   //console.log(temp.error)
   if (temp.error) {
+    console.log(temp.error);
     response
-      .status(201)
+      .status(400)
       .send("Parking was not addressed. Invalid entry. Please try again.");
   } else {
     const text =
@@ -119,15 +120,18 @@ const createPD = (request, response) => {
       latitude,
       price,
       owner_id,
-      total
+      total,
     ];
     // callback
     pool.query(text, values, (err, res) => {
       if (err) {
         console.log(err.stack);
+        response.status(400).json({
+          ...{ error_message: "Parking Lot already exists...." },
+        });
       } else {
         console.log(res.rows[0]);
-        response.status(201).send(`Parking addressed with ID: ${id}`);
+        response.status(201).send(`Parking Lot Registered...`);
         // { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
       }
     });
@@ -141,17 +145,17 @@ const updatePD = (request, response) => {
   const { name, price } = request.body;
   validate.update_pd_schema.validate({
     jname: name,
-    jprice: price
+    jprice: price,
   });
   const temp = validate.update_pd_schema.validate({
     jid: id,
     jname: name,
-    jprice: price
+    jprice: price,
   });
   //console.log(temp.error)
   if (temp.error) {
     response
-      .status(201)
+      .status(400)
       .send("Parking was not updated. Invalid entry. Please try again.");
   } else {
     pool.query(
@@ -189,5 +193,5 @@ module.exports = {
   getPDByOwner,
   createPD,
   updatePD,
-  deletePD
+  deletePD,
 };

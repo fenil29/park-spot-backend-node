@@ -59,22 +59,24 @@ const getUserBylname = (request, response) => {
 };
 
 const login = (request, response) => {
-  const { id, pass } = request.body;
-  validate.login_schema.validate({ jid: id, jpass: pass });
+  const { email, pass } = request.body;
+  validate.login_schema.validate({ jemail: email, jpass: pass });
   validate.login_schema.validate({});
-  const temp = validate.login_schema.validate({ jid: id, jpass: pass });
+  const temp = validate.login_schema.validate({ jemail: email, jpass: pass });
   if (temp.error) {
-    response.status(400).send("Please enter correct id or password.");
+    response.status(400).send("Please enter correct E-mail or password.");
   } else {
     pool.query(
-      "SELECT * FROM fms_user WHERE user_user_id = $1 AND user_password=$2",
-      [id, pass],
+      "SELECT * FROM fms_user WHERE user_email_id = $1 AND user_password=$2",
+      [email, pass],
       (error, results) => {
         if (error) {
           console.log(error);
         } else {
           if (results && results.rows == 0) {
-            response.status(400).send("Please enter correct id or password");
+            response
+              .status(400)
+              .send("Please enter correct E-mail or password");
           } else {
             user = results.rows[0];
             delete user["user_mobile_no"];
@@ -82,27 +84,10 @@ const login = (request, response) => {
             response.status(200).json(user);
           }
         }
-
-        // console.log(results.rows.length)
-        //   if (results.rows.length==1) {
-        //   response.status(200).json(results.row)
-        // }
-        // else {
-
-        //   response.status(201).send("User was not found. Please signup or try again.")
-
-        // }
       }
     );
   }
 };
-
-// Also -
-
-// try {
-//     const value = await schema.validateAsync({ username: 'abc', birth_year: 1994 });
-// }
-// catch (err) { }
 
 const createUser = (request, response) => {
   //console.log(request.body)
@@ -123,49 +108,56 @@ const createUser = (request, response) => {
     jemail: email,
     jaccess: access,
   });
-  //console.log(temp.error);
-  // const emailvalidation =
-  //   "Select user_email_id from fms_user where user_email_id=$1";
-  // const emailvalue = [email];
-  // // callback
-  // pool.query(emailvalidation, emailvalue, (err, res) => {
-  //   if (emailvalidation.rows != null) {
-  //     response.status(400).send(`User already exists.`);
-  //   } else {
   if (temp.error) {
     response
-      .status(201)
+      .status(400)
       .send(
         "User was not added. Invalid entry. Please Enter proper details and Password of minimum 5 characters."
       );
   } else {
-    //user id
-    let userid;
-    userid = "SELECT max(user_user_id) as user_user_id from fms_user";
-    pool.query(userid, (err, res) => {
-      if (err) {
-        console.log(err.stack);
-      } else {
-        userid = parseInt(res.rows[0].user_user_id);
-        console.log(parseInt(res.rows[0].user_user_id));
-      }
+    (async () => {
+      const client = await pool.connect();
+      try {
+        //for inserting user
+        await client.query("BEGIN");
+        const text =
+          "INSERT INTO fms_user (user_password,user_email_id,user_first_name,user_last_name,access_right) VALUES($1, $2,$3,$4,$5)";
 
-      const text =
-        "INSERT INTO fms_user (user_password,user_email_id,user_first_name,user_last_name,access_right, user_user_id) VALUES($1, $2,$3,$4,$5,$6)";
-
-      const values = [pass, email, fname, lname, access, userid + 1]; //access,access_right,
-      // callback
-      pool.query(text, values, (err, res) => {
-        if (err) {
-          response.status(201).send("Email-id already exists.");
-        } else {
-          console.log(res.rows[0]);
-          response.status(201).send(`User added`);
-
+        const values = [pass, email, fname, lname, access];
+        await client.query(text, values, (err, res) => {
+          if (err) {
+            response.status(400).json({
+              ...{ error_message: "Email-id already exists...." },
+            });
+          } else {
+            console.log("User Added...");
+            //for getting details of user
+            const user = "SELECT * from fms_user WHERE user_email_id = $1";
+            client.query(user, [email], (err, res) => {
+              if (err) {
+                response.status(400).json({
+                  ...{ error_message: "Email-id already exists...." },
+                });
+              } else {
+                console.log(res.rows);
+                userdetail = res.rows[0];
+                //delete user["user_mobile_no"];
+                delete userdetail["user_password"];
+                response.status(201).json(userdetail);
+              }
+            });
+          }
           //   { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
-        }
-      });
-    });
+        });
+        await client.query("COMMIT");
+        response.status(200).json({ ...res.rows[0], ...ParkingLotDetails });
+      } catch (e) {
+        await client.query("ROLLBACK");
+        throw e;
+      } finally {
+        client.release();
+      }
+    })().catch((e) => console.error(e.stack));
   }
 };
 
@@ -193,7 +185,7 @@ const updateUser = (request, response) => {
   });
   if (temp.error) {
     response
-      .status(201)
+      .status(400)
       .send("User was not updated. Invalid entry. Please try again.");
   } else {
     pool.query(
