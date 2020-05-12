@@ -34,10 +34,9 @@ const create_pd_schema = Joi.object({
     .required(),
   jadd: Joi.string()
     .regex(/^[A-Za-z0-9'\.\-\s\,\ ]+$/)
+    .max(200)
     .required(),
-
-  jpin: Joi.string().regex(/^(\d{4}|^\d{6})$/),
-
+  jpin: Joi.string().max(30),
   jlon: Joi.string()
     .regex(/^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/)
     .required(),
@@ -48,6 +47,7 @@ const create_pd_schema = Joi.object({
   //jentry: Joi.number().min(0).max(1).required(),
 
   jprice: Joi.number().required(),
+  jtotal: Joi.number().min(1).max(100).required(),
 });
 
 const update_pd_schema = Joi.object({

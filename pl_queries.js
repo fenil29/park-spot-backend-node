@@ -88,7 +88,7 @@ const createPD = (request, response) => {
     jlat: latitude,
     jadd: address,
     jpin: pin,
-    jprice: total,
+    jtotal: total,
   });
   //console.log(temp.error)
   if (temp.error) {
@@ -110,9 +110,8 @@ const createPD = (request, response) => {
     ];
     pool.query(text, values, (err, res) => {
       if (err) {
-        response.status(400).json({
-          ...{ error_message: "Parking Lot already exists...." },
-        });
+        console.log(err.stack);
+        response.status(400).json("error");
       } else {
         console.log("Parking Lot Added...");
         //for getting details of user
