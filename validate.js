@@ -8,10 +8,7 @@ const create_user_schema = Joi.object({
     .required(),
 
   jid: Joi.number().min(1),
-  jpass: Joi.string()
-    .regex(/^[A-Za-z0-9]{5,}$/)
-    .min(5)
-    .required(),
+  jpass: Joi.string().min(5).max(50).required(),
 
   jname: Joi.string()
     .regex(/^[a-zA-Z]+$/)
@@ -19,9 +16,7 @@ const create_user_schema = Joi.object({
     .max(30)
     .required(),
 
-  jaccess: Joi.string()
-    .valid("Provider", "provider", "User", "user")
-    .required(),
+  jaccess: Joi.string().valid("provider", "user").required(),
   // Joi.string().valid("provider"),
   // Joi.string().valid("User"),
   // Joi.string().valid("user")

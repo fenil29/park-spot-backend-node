@@ -64,7 +64,7 @@ const login = (request, response) => {
   validate.login_schema.validate({});
   const temp = validate.login_schema.validate({ jemail: email, jpass: pass });
   if (temp.error) {
-    response.status(400).send("invalid data");
+    response.status(400).send("Please enter correct E-mail or password");
   } else {
     pool.query(
       "SELECT * FROM fms_user WHERE user_email_id = $1 AND user_password=$2",
@@ -108,12 +108,9 @@ const createUser = (request, response) => {
     jemail: email,
     jaccess: access,
   });
+  console.log(temp.error);
   if (temp.error) {
-    response
-      .status(400)
-      .send(
-        "User was not added. Invalid entry. Please Enter proper details and Password of minimum 5 characters."
-      );
+    response.status(400).send("Invalid Data");
   } else {
     //for inserting user
     const text =
@@ -122,7 +119,7 @@ const createUser = (request, response) => {
     const values = [pass, email, fname, lname, access];
     pool.query(text, values, (err, res) => {
       if (err) {
-        response.status(400).json({ error_message: "Email-id already exists" });
+        response.status(400).json("Email-id already exists");
       } else {
         console.log("User Added...");
         //for getting details of user

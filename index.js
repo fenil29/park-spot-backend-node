@@ -18,7 +18,7 @@ app.use(
 );
 
 // this function is for storing parking lot data in fms_parking_lot_history table for data analytics
-store_parking_data();
+// store_parking_data();
 
 app.get("/", (request, response) => {
   response.json({ info: "Node.js, Express, and Postgres API" });
