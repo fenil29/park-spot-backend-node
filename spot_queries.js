@@ -156,27 +156,59 @@ const leaveSpot = (request, response) => {
           await client.query(occupied, Value);
 
           const values2 = [user, id];
+          const rec =
+            "SELECT record from fms_parking_history WHERE user_id = $1 AND parking_lot = $2 AND out_time IS NULL";
+          const val = await client.query(rec, values2);
+          const record = Number(val.rows[0]["record"]);
           const updateOutTime =
-            "update fms_parking_history set out_time = CURRENT_TIMESTAMP WHERE user_id=$1 AND parking_lot=$2";
-          await client.query(updateOutTime, values2);
+            "update fms_parking_history set out_time = CURRENT_TIMESTAMP WHERE user_id=$1 AND parking_lot=$2 AND record=$3 ";
+          await client.query(updateOutTime, [user, id, record]);
           const totalTime =
-            "select MAX(record),(out_time-in_time) as total_time from fms_parking_history where user_id = $1  AND parking_lot=$2 GROUP BY total_time ORDER BY MAX(record) DESC;";
-          const values3 = [user, id];
-          const res1 = await client.query(totalTime, values3);
-          const time = res1.rows[0]["Total_time"];
-          const hrs = time.split(":")[0];
-          const mins = time.split(":")[1];
+            "update fms_parking_history SET total_time = out_time-in_time WHERE record = $1;";
 
+          await client.query(totalTime, [record]);
+          const time =
+            "select total_time from fms_parking_history WHERE record = $1;";
+          const res1 = await client.query(time, [record]);
+          console.log(res1);
+          const seconds = res1.rows[0].total_time.split(":")[2].split(".")[0];
+          const minutes = res1.rows[0].total_time.split(":")[1];
+          const hours = res1.rows[0].total_time.split(":")[0];
+          console.log(hours, minutes, seconds);
+
+          // const hrs = Number(time.split(":")[0]);
+          // const mins = Number(time.split(":")[1]);
+          // console.log(hrs + " " + mins);
+          const rate =
+            "SELECT pd_hrly_rate from fms_parking_lot where pd_lot_id= $1";
+          const res2 = await client.query(rate, [id]);
+          const price = res2.rows[0].pd_hrly_rate;
+          console.log(price);
+          let pricePerSec = Number(price) / 3600;
+          let totalTimeSec = hours * 3600 + minutes * 60 + Number(seconds);
+          let finalPrice = totalTimeSec * pricePerSec;
+          finalPrice = finalPrice.toFixed(2);
+
+          console.log(finalPrice);
+
+          const queryText2 =
+            "update fms_parking_history set payment = $1 WHERE record = $2;";
+          const res3 = await client.query(queryText2, [finalPrice, record]);
+          // const price_for_hour = Number(res2.rows[0]["pd_hrly_rate"]);
+          // const price_for_min = price_for_hour / 60;
+          // // const bill = hrs * price_for_hour + mins * price_for_min;
+
+          // const payment =
+          //   "UPDATE fms_parking_history set payment =$1 where user_id=$2 AND parking_lot=$3 AND payment = 0";
+          // const res3 = await client.query(payment, [bill, user, id]);
           await client.query("COMMIT");
           response.status(200).json({
             ...ParkingLotDetails,
-            ...{ message: "Thanks for Visiting. Please drive Safe..." },
+            ...{
+              Payment: finalPrice,
+              message: "Thanks for Visiting. Please drive Safe...",
+            },
           });
-          // var hours = response.status(200).json(res1.rows[0].total_time.hours);
-          // var mins = response.status(200).json(res1.rows[0].total_time.minutes);
-          //console.log(hours);
-          //console.log("minutes:" + mins);
-          //response.status(200).json(res.rows[0]);
         }
       } catch (e) {
         await client.query("ROLLBACK");
