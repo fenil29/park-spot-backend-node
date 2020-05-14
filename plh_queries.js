@@ -12,7 +12,13 @@ const getPLHistory = (request, response) => {
         throw error;
       }
       console.log(results.rows);
-      response.status(200).json(results.rows);
+      response
+        .status(200)
+        .json(
+          results.rows[0]
+            ? { ...results.rows[0], type: "day" }
+            : "not available"
+        );
     }
   );
 };
