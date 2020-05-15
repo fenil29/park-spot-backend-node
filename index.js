@@ -74,7 +74,8 @@ app.delete("/spot/:id", spotq.deleteSD);
 
 //fms_parking_lot_history
 
-app.post("/lothistory", plhq.getPLHistory);
+app.post("/lot-history", plhq.getPLHistory);
+app.post("/lot-history-by-month", plhq.getPLHistoryByMonth);
 
 //for virtual parking lot
 app.get("/vp-parking", vpparking.getPD);
