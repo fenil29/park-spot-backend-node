@@ -14,7 +14,7 @@ const getHistory = (request, response) => {
 };
 
 const getUserById = (request, response) => {
-  const id = parseInt(request.params.id);
+  const id = parseInt(request.params.user_id);
 
   pool.query(
     "SELECT * FROM fms_parking_history INNER JOIN fms_parking_lot ON fms_parking_history.parking_lot=fms_parking_lot.pd_lot_id where fms_parking_history.user_id = $1 ORDER BY out_time DESC",

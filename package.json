@@ -16,6 +16,7 @@
     "dustjs-helpers": "*",
     "dustjs-linkedin": "*",
     "express": "*",
+    "jsonwebtoken": "^8.5.1",
     "pg": "^6.4.2"
   }
 }

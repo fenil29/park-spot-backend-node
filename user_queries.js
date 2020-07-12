@@ -1,5 +1,8 @@
+const jsonwebtoken = require("jsonwebtoken");
 const pool = require("./postgresql_connection.js").pool;
 const validate = require("./validate.js");
+const { jwtKey } = require("./config.js");
+
 
 const getUsers = (request, response) => {
   pool.query(
@@ -63,6 +66,7 @@ const login = (request, response) => {
 
   const temp = validate.login_schema.validate({ jemail: email, jpass: pass });
   if (temp.error) {
+    console.log(temp.error);
     response.status(400).send("Please enter correct E-mail or password");
   } else {
     pool.query(
@@ -80,6 +84,9 @@ const login = (request, response) => {
             user = results.rows[0];
             // delete user["user_mobile_no"];
             delete user["user_password"];
+            console.log(user)
+            const token = jsonwebtoken.sign( {...user}, jwtKey);
+            response.setHeader('token', token)
             response.status(200).json(user);
           }
         }
@@ -123,6 +130,8 @@ const createUser = (request, response) => {
             userDetail = res.rows[0];
             //delete user["user_mobile_no"];
             delete userDetail["user_password"];
+            const token = jsonwebtoken.sign({...userDetail}, jwtKey);
+            response.setHeader('token', token)
             response.status(201).json(userDetail);
           }
         });

@@ -45,8 +45,9 @@ const getSDBystatus = (request, response) => {
 //"UPDATE fms_parking_spot SET sd_status= 1,lot_id=$1 WHERE spot_no = min(spot_no)"
 
 const getSpot = (request, response) => {
-  const id = request.params.id;
-  const user = request.body.user;
+  const id = request.body.lotId;
+  const user = request.params.user_id;
+
   validate.create_spot_schema.validate({ jno: id, jno: user });
 
   const temp = validate.create_spot_schema.validate({ jno: id, jno: user });
@@ -118,8 +119,8 @@ const getSpot = (request, response) => {
 };
 
 const leaveSpot = (request, response) => {
-  const id = request.params.id;
-  const user = request.body.user;
+  const user = request.params.user_id;
+  const id = request.body.lotId;
 
   const temp = validate.create_spot_schema.validate({ jno: id, jno: user });
 

@@ -44,7 +44,7 @@ const getPDByname = (request, response) => {
 };
 
 const getPDByOwner = (request, response) => {
-  const id = request.params.id;
+  const id = request.params.owner_id;
   pool.query(
     "SELECT * FROM fms_parking_lot where pd_owner_id =$1",
     [id],
@@ -76,9 +76,9 @@ const createPD = (request, response) => {
     longitude,
     latitude,
     price,
-    owner_id,
     total,
   } = request.body;
+  const owner_id =request.params.owner_id
 
   const temp = validate.create_pd_schema.validate({
     jid: owner_id,
