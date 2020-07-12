@@ -1,10 +1,10 @@
-const secret = require("./secret.js");
 
 const environment = process.env.NODE_ENV || "development";
 
 let jwtKey, databaseUrl, port;
 
 if (environment === "development") {
+  const secret = require("./secret.js");
   port = 4001;
   jwtKey = secret.jwtKey;
   databaseUrl = secret.databaseUrl;
