@@ -1,5 +1,5 @@
 {
-  "name": "smart-parking-system-with-data-analytics-backend-node",
+  "name": "park-spot-backend-node",
   "version": "1.0.0",
   "description": "parking",
   "main": "index.js",
