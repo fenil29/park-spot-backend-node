@@ -37,56 +37,56 @@ app.get("/", (request, response) => {
   response.json({ info: "find my parking spot api" });
 });
 // //fms_user
-// app.get("/api/users", uq.getUsers);
-// app.get("/api/users/id/:id", uq.getUserById);
-// app.get("/api/users/fname/:fname", uq.getUserByfname);
-// app.get("/api/users/lname/:lname", uq.getUserBylname);
+// app.get("/users", uq.getUsers);
+// app.get("/users/id/:id", uq.getUserById);
+// app.get("/users/fname/:fname", uq.getUserByfname);
+// app.get("/users/lname/:lname", uq.getUserBylname);
 
-app.post("/api/users/login", uq.login);
-app.post("/api/users", uq.createUser);
-// app.put("/api/users/:id", uq.updateUser);
-// app.delete("/api/users/:id", uq.deleteUser);
+app.post("/users/login", uq.login);
+app.post("/users", uq.createUser);
+// app.put("/users/:id", uq.updateUser);
+// app.delete("/users/:id", uq.deleteUser);
 
 // //fms_parking_history
-// app.get("/api/history", phq.getHistory);
+// app.get("/history", phq.getHistory);
 // get all the information about pastz record
-app.get("/api/history/id/:user_id",auth.verifyToken,auth.verifyUserId, phq.getUserById);
-// app.post("/api/history", phq.createhistory);
-// app.put("/api/history/:id", phq.updateHistory);
-// app.delete("/api/history/:id", phq.deleteHistory);
+app.get("/history/id/:user_id",auth.verifyToken,auth.verifyUserId, phq.getUserById);
+// app.post("/history", phq.createhistory);
+// app.put("/history/:id", phq.updateHistory);
+// app.delete("/history/:id", phq.deleteHistory);
 
 // //fms_parking_lot
 //info about all the parking lot
-app.get("/api/parking",auth.verifyToken, parkingq.getPD);
-// app.get("/api/parking/id/:id", parkingq.getPDById);
-// app.get("/api/parking/name/:name", parkingq.getPDByname);
+app.get("/parking",auth.verifyToken, parkingq.getPD);
+// app.get("/parking/id/:id", parkingq.getPDById);
+// app.get("/parking/name/:name", parkingq.getPDByname);
 // get info of all parking lot of provider
-app.get("/api/parking/:owner_id",auth.verifyToken,auth.verifyOwnerId, parkingq.getPDByOwner);
+app.get("/parking/:owner_id",auth.verifyToken,auth.verifyOwnerId, parkingq.getPDByOwner);
 // to create new parking lot
-app.post("/api/parking/:owner_id",auth.verifyToken,auth.verifyOwnerId, parkingq.createPD);
-// app.put("/api/parking/:id", parkingq.updatePD);
-// app.delete("/api/parking/:id", parkingq.deletePD);
+app.post("/parking/:owner_id",auth.verifyToken,auth.verifyOwnerId, parkingq.createPD);
+// app.put("/parking/:id", parkingq.updatePD);
+// app.delete("/parking/:id", parkingq.deletePD);
 
 // //fms_parking_spot
 
-// app.get("/api/spot", spotq.getSD);
-// app.get("/api/spot/id/:id", spotq.getSDById);
-// app.get("/api/spot/id/:id/status/:status", spotq.getSDBystatus);
-app.post("/api/spot/get/:user_id",auth.verifyToken,auth.verifyUserId, spotq.getSpot);
-app.post("/api/spot/left/:user_id",auth.verifyToken,auth.verifyUserId, spotq.leaveSpot);
-// app.post("/api/spot", spotq.createSD);
-// app.put("/api/spot/:id", spotq.updateSD);
-// app.delete("/api/spot/:id", spotq.deleteSD);
+// app.get("/spot", spotq.getSD);
+// app.get("/spot/id/:id", spotq.getSDById);
+// app.get("/spot/id/:id/status/:status", spotq.getSDBystatus);
+app.post("/spot/get/:user_id",auth.verifyToken,auth.verifyUserId, spotq.getSpot);
+app.post("/spot/left/:user_id",auth.verifyToken,auth.verifyUserId, spotq.leaveSpot);
+// app.post("/spot", spotq.createSD);
+// app.put("/spot/:id", spotq.updateSD);
+// app.delete("/spot/:id", spotq.deleteSD);
 
 // //fms_parking_lot_history
 
-app.post("/api/lot-history/:pd_lot_id",auth.verifyToken, plhq.getPLHistory);
-app.post("/api/lot-history-by-month/:pd_lot_id",auth.verifyToken, plhq.getPLHistoryByMonth);
+app.post("/lot-history/:pd_lot_id",auth.verifyToken, plhq.getPLHistory);
+app.post("/lot-history-by-month/:pd_lot_id",auth.verifyToken, plhq.getPLHistoryByMonth);
 
 //for virtual parking lot
-app.get("/api/vp-parking", vpparking.getPD);
-app.get("/api/vp-parking/id/:id", vpparking.getPDById);
-app.get("/api/vp-parkings-pots/:id", vpparking.getPDSpots);
+app.get("/vp-parking", vpparking.getPD);
+app.get("/vp-parking/id/:id", vpparking.getPDById);
+app.get("/vp-parkings-pots/:id", vpparking.getPDSpots);
 
 app.listen(port, () => {
   console.log(`App running on port ${port}.`);
