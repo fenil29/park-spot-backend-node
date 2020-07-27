@@ -34,7 +34,7 @@ app.use(function (req, res, next) {
 });
 
 app.get("/", (request, response) => {
-  response.json({ info: "find my parking spot api" });
+  response.json({ info: "find my parking spot api😃" });
 });
 // //fms_user
 // app.get("/users", uq.getUsers);

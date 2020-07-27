@@ -63,6 +63,7 @@ const getSpot = (request, response) => {
       // we don't need to dispose of the client (it will be undefined)
       try {
         await client.query("BEGIN");
+        await client.query("LOCK TABLE fms_parking_spot IN ACCESS EXCLUSIVE MODE");
         const lot = "SELECT * from fms_parking_lot WHERE pd_lot_id=$1";
         const ParkingLotRes = await client.query(lot, [id]);
         const ParkingLotDetails = ParkingLotRes.rows[0];
@@ -136,6 +137,7 @@ const leaveSpot = (request, response) => {
       // we don't need to dispose of the client (it will be undefined)
       try {
         await client.query("BEGIN");
+        await client.query("LOCK TABLE fms_parking_spot IN ACCESS EXCLUSIVE MODE");
         const lot = "SELECT * from fms_parking_lot WHERE pd_lot_id=$1";
         const ParkingLotRes = await client.query(lot, [id]);
         const ParkingLotDetails = ParkingLotRes.rows[0];
