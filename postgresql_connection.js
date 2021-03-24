@@ -6,6 +6,9 @@ const { databaseUrl } = require("./config.js");
 const connectionString = databaseUrl;
 const pool = new Pool({
   connectionString: connectionString,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 // const client = new Client({
 //   connectionString: connectionString,
