@@ -16,6 +16,7 @@ const pool = new Pool({
 
 pool.query('SELECT table_schema,table_name FROM information_schema.tables;', (err, res) => {
   if (err) throw err;
+  console.log(res)
 });
 
 module.exports = {

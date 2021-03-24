@@ -1,6 +1,8 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
+require('dotenv').config()
+
 //const Joi = require('@hapi/joi');
 const uq = require("./user_queries.js");
 const phq = require("./ph_queries.js");

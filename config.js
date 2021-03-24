@@ -1,4 +1,3 @@
-
 const environment = process.env.NODE_ENV || "development";
 
 let jwtKey, databaseUrl, port;
