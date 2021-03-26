@@ -19,6 +19,6 @@
     "dustjs-linkedin": "*",
     "express": "*",
     "jsonwebtoken": "^8.5.1",
-    "pg": "^6.4.2"
+    "pg": "^8.0.3"
   }
 }
